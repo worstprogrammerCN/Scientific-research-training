@@ -1,11 +1,6 @@
-import argparse
 import json
 import math
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--json_dir", type=str, default="results1_test/results1/", help="Json Directory")
-args = parser.parse_args()
 
 
 class Position(object):
@@ -372,7 +367,7 @@ class Item(object):
 			self.nearestItem = nearestItem
 			return nearestItem
 
-def ReadJson(number):
+def ReadJson(number, dirPath):
 	"""根据json文件的编号，处理这个文件，并返回包含Item的数组
 	
 	首先根据文件编号打开文件，将其字符串解码为json数组对象，
@@ -393,7 +388,7 @@ def ReadJson(number):
 	Exceptions:
 		没有该文件，打开文件失败: 直接返回None
 	"""
-	path= args.json_dir + '%d.json' % number
+	path= dirPath + '%d.json' % number
 	try:
 		with open(path) as f:
 			rawItems = json.load(f)

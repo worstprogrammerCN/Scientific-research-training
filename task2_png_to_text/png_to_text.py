@@ -1,5 +1,11 @@
 import Util
+from bottle import template
+import webbrowser
+import argparse
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--json_dir", type=str, default="results1_test/results1/", help="Json Directory")
+args = parser.parse_args()
 
 dictWeather = {
 	'sun': 'It\'s a sunny day.',
@@ -179,6 +185,7 @@ class ImageToText(object):
 		如果树有两颗以下，就可以作为参照物，也可寻找参照物。
 		如果大于两颗，就视为"多颗"，树是相互之间无差别的，就不再以植物为参照物
 
+		然后，先描述第一层的物体，再描述与它关联的第二层的物体
 		"""
 		texts = []
 
@@ -189,6 +196,9 @@ class ImageToText(object):
 
 		if self.plantNum["flower"] > 2:
 			plantTexts.append("flowers")
+
+		if self.plantNum["grass"] >= 1:
+			plantTexts.append("grass")
 
 		plantText = " and ".join(plantTexts)
 		if len(plantTexts) > 0: # 有多颗树或者花才进行描述
@@ -331,13 +341,45 @@ class ImageToText(object):
 		for item in self.firstLayerItems:
 			item.findNearestItem(self.firstLayerItems, self.firstLayerItem, True)
 
+def writeHTML(texts):
+	"""
+		把字符串生成网页在当前目录下
+	"""
+	message = """
+	<html>
+	<h1>week2 template</h1>
+	<body>
+	<br>
+	%for i in range(0,len(items)):
+	<img src={{\""""
+
+	filePath = args.json_dir + "\%d.png "
+
+	message2 = """"%(i+1)}} width="200px"/>
+	<p>{{i+1}} : {{items[i]}}</p>
+	%end
+	<h2>by SYSU.Jin Zili </h2>
+	</body>
+	</html>"""
+
+
+	
+
+	html = template(message + filePath + message2, items=texts)
+	with open("index.html", 'wb') as f:
+		f.write(html.encode('utf-8'))
+
 def main():
-	for num in range(400, 505):
-		items = Util.ReadJson(num)
+	texts = []
+	for num in range(1, 100):
+		items = Util.ReadJson(num, args.json_dir)
 		if items == None:
 			continue
 		solution = ImageToText(items)
-		print("%d: %s" % (num, solution.getText()) )
+		text = solution.getText()
+		texts.append(text)
+	writeHTML(texts)
+	
 	
 
 if __name__ == '__main__':
