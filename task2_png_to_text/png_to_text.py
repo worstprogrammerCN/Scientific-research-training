@@ -11,11 +11,14 @@ dictWeather = {
 	'sun': 'It\'s a sunny day.',
 	'star': 'It\'s a moonlit night.',
 	'cloud': 'It\'s a cloudy day.',
-	'moon': 'It\'s a starry night.',
-	'daytime': 'It\'s daytime.'
+	'moon': 'It\'s a starry night.'
 }
 
-
+"""
+	先以fence/house/car分界，把动物合并，再以这些分界，把tree合并。
+	花/草不可定位。
+	树可以定位。
+"""
 
 class ImageToText(object):
 	def __init__(self, items):
@@ -25,14 +28,6 @@ class ImageToText(object):
 			backgroundItem: 背景物体，一般可用于描述天气、天空和远处的山。
 			inHighSky: 在高空飞行的物体
 			inLowSky: 在低空飞行的物体，视为第二级物体。
-
-			firstLayerItem, secondLayerItem:
-				我们描述一副图片的策略是：先为每个第二级物体(也就是次要的物体)找到第一级物体(也就是主要的物体)的参照物。
-				然后再为每个第一级物体找到另一个第一级物体的参照物。
-				这样，每个主要物体都能一一定位，关联到它们上的次要物体也都能得到定位。
-
-				所以，firstLayerItem代表第一级物体，也就是首要描述的物体。
-				secondLayerItem代表第二级物体，也就是次要描述的物体。
 
 			vehicleNum, plantNum: key是交通工具与植物的名字，value是它们对应的数量
 		"""
@@ -54,20 +49,11 @@ class ImageToText(object):
 
 		self.vehicleNum = { vi : len([item for item in self.items if item.category == vi]) for vi in self.vehicle }
 		self.plantNum = {p : len([item for item in self.items if item.category == p]) for p in self.plants}
-		
-		# 首要描述的Item。有水果、交通工具和家具。
-		self.firstLayerItem = self.fruit + self.vehicle + self.furniture + self.building + ["flower", "tree"]
-		
-		# 次级描述的Item。若树或花低于或等于两颗，则也可以去寻找其它参照物。
-		# 若太多颗，由于它们没有特征，单独对齐位置进行描述没有什么意义。
-		self.secondLayerItem = self.inLowSky + self.onGroundAnimal
-
-		self.setLayerItems()
-		self.findNearestItem()
 
 	def getWeather(self):
 		"""
-			分析@code{items}得到关于天气的描述
+			分析@code{items}里的天气特征，得到关于天气的描述
+			没有天气特征则不说特征
 		"""
 		isCloudy = False
 		for item in self.items:
@@ -80,8 +66,8 @@ class ImageToText(object):
 				isCloudy = True
 		if isCloudy:
 			return dictWeather['cloud']
-		else:
-			return dictWeather['daytime']
+		else
+			return ""
 
 	def getDistantView(self):
 		"""
@@ -308,38 +294,6 @@ class ImageToText(object):
 		texts = [weather, distantView, vehicle, groundItems, bucketDiscription]
 		return " ".join([text for text in texts if text != ""])
 
-	def setLayerItems(self):
-		firstLayerItems = {item for item in self.items if item.category in self.firstLayerItem}
-		secondLayerItems = {item for item in self.items if item.category in self.secondLayerItem}
-
-		self.firstLayerItems = sorted(firstLayerItems, key = lambda item : item.position.zIndex)
-		self.secondLayerItems = sorted(secondLayerItems, key = lambda item : item.position.zIndex)
-
-
-		# 树太多，不需要各自定位，将其从第一级物体剔除
-		if self.plantNum["tree"] > 2:
-			self.firstLayerItems = [item for item in self.firstLayerItems if item.category != "tree"]
-		# 花太多，不需要各自定位，将其从第一级物体剔除
-		if self.plantNum["flower"] > 2: 
-			self.firstLayerItems = [item for item in self.firstLayerItems if item.category != "flower"]
-
-		# 如果没有第一级物体，则第二级的物体全部提到第一级
-		if len(self.firstLayerItems) == 0:
-			self.firstLayerItems = self.secondLayerItems
-			self.secondLayerItems = []
-			self.firstLayerItem = self.secondLayerItem
-			self.secondLayerItem = []
-
-	def findNearestItem(self):
-		"""
-			为第一级物体与第二级物体找到最近的物体，用于作为参照物。
-		"""
-
-		for item in self.secondLayerItems: # 让每个第二级的物体从第一级物体里找参照物。
-			item.findNearestItem(self.firstLayerItems, self.firstLayerItem, False)
-
-		for item in self.firstLayerItems:
-			item.findNearestItem(self.firstLayerItems, self.firstLayerItem, True)
 
 def writeHTML(texts):
 	"""
