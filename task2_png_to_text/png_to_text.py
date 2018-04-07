@@ -29,14 +29,6 @@ class ImageToText(object):
 
 			unmovable: 不可移动的静物，作为动物的分割线
 
-			firstLayerItem, secondLayerItem:
-				我们描述一副图片的策略是：先为每个第二级物体(也就是次要的物体)找到第一级物体(也就是主要的物体)的参照物。
-				然后再为每个第一级物体找到另一个第一级物体的参照物。
-				这样，每个主要物体都能一一定位，关联到它们上的次要物体也都能得到定位。
-
-				所以，firstLayerItem代表第一级物体，也就是首要描述的物体。
-				secondLayerItem代表第二级物体，也就是次要描述的物体。
-
 			vehicleNum, plantNum: key是交通工具与植物的名字，value是它们对应的数量
 		"""
 		super(ImageToText, self).__init__()
@@ -56,20 +48,10 @@ class ImageToText(object):
 		self.onGroundAnimal = ["dog", "cat", "chicken", "duck", "rabbit", "cow", "sheep", "horse", "pig", "people"]
 
 		self.unmovable = self.fruit + self.furniture + self.vehicle + self.building + ["tree"]
+		self.hasGrass = False
 
 		self.vehicleNum = { vi : len([item for item in self.items if item.category == vi]) for vi in self.vehicle }
 		self.plantNum = { p : len([item for item in self.items if item.category == p]) for p in self.plants }
-		
-		# 首要描述的Item。有水果、交通工具和家具。
-		self.firstLayerItem =  self.vehicle + self.furniture + self.building + ["tree"]
-		
-		# 次级描述的Item。若树或花低于或等于两颗，则也可以去寻找其它参照物。
-		# 若太多颗，由于它们没有特征，单独对齐位置进行描述没有什么意义。
-		self.secondLayerItem = self.inLowSky + self.onGroundAnimal + self.fruit
-
-		# its = sorted(self.items, key = lambda item : item.position.zIndex)
-		# sprint([item.position.zIndex for item in its if item.category != "grass" and item.category != "flower" and item.category != "cloud"])
-
 		
 
 	def getWeather(self):
@@ -88,7 +70,7 @@ class ImageToText(object):
 		if isCloudy:
 			return dictWeather['cloud']
 		else:
-			return dictWeather['daytime']
+			return ""
 
 	def getDistantView(self):
 		"""
@@ -141,50 +123,6 @@ class ImageToText(object):
 		distantViewTexts = [backgroundText, highSkyText]
 		return " ".join([text for text in distantViewTexts if text != ""])
 
-	def getVehicle(self):
-		""" 统计各种交通工具的数量并生成相应描述
-
-		先统计各种交通工具的数量
-		再为自行车以外的交通工具生成描述。
-		再为自行车生成相应描述。
-		
-		Args:
-			total:
-				自行车以外的交通工具的数量。
-				当它大于1，描述要变为'There are ...' 比如 'There are 2 trucks and a bus...'
-
-
-		Returns:
-			字符串。关于所有交通工具的数量的描述。
-		"""
-
-		# 为自行车以外的交通工具添加相应描述
-		texts = []
-		for vi in self.vehicleNum:
-			if vi != 'bicycle':
-				num = self.vehicleNum[vi]
-				if num is 1:
-					texts.append("a %s" % vi)
-				elif num >= 2:
-					texts.append("%d %ss" % (num, vi))
-
-		# 生成描述
-		total = sum([self.vehicleNum[vi] for vi in self.vehicleNum if vi != "bicycle"]) # 自行车以外的车的总数
-		text = " and ".join(texts)
-		if total >= 2:
-			text = "There are %s running on the road." % text 
-		elif total is 1:
-			text = "There is %s running on the road." % text
-
-
-		# 统计自行车的数量，并添加相应描述
-		if self.vehicleNum['bicycle'] is 1:
-			text += 'There is a bicycle on the ground.'
-		elif self.vehicleNum['bicycle'] >= 2:
-			text += 'There are %d bicycles on the ground.' % self.vehicleNum['bicycle']
-
-		return text
-
 	def getBucketDiscription(self):
 		""" 添加关于花盆的描述
 
@@ -213,9 +151,9 @@ class ImageToText(object):
 		total = sum([plantNum[plant] for plant in plantNum])
 		for plant in plantNum:
 			if plantNum[plant] > 1:
-				texts.append(plant + "s")
+				texts.append(self.getPluralNoun(plant))
 			elif plantNum[plant] == 1:
-				texts.append(plant)
+				texts.append(self.getSingleNoun(plant))
 
 		text = " and ".join(texts)
 		if total > 1:
@@ -227,45 +165,20 @@ class ImageToText(object):
 
 		return text
 
-	def recDescribe(self, originItem, direction, items):
-		""" 按顺序为相对于第一层物体@code{originItem}的第二层物体们@code{items}进行定位描述
-
-		由于添加顺序本身就按照@code{zIndex}, 
-		可知@code{items}本身就是按照@code{zIndex}排列的。
-		只需按照@code{items}的顺序一个个地描述即可。
-
-		假设:
-			direction和item不为空, items的长度至少为1
-
-		Args:
-			originItem: 作为参照物的第一层的物体。
-			direction: @code{items}相对于@code{originItem}的方向
-			items: 与@code{originItem}关联的第二层的物体
-
-		"""
-		texts = []
-
-		# 描述第一个
-		texts.append("A %s is %s the %s." % (items[0].category, direction, originItem.category))
-
-		# 从第二个开始不断以前一个为参照物来描述
-		for index in range(1, len(items)):
-			currentItem = items[index].category
-			lastItem = items[index - 1].category
-			texts.append("A %s is %s the %s." % (currentItem, direction, lastItem))
-
-		return " ".join(texts)
-
 	def getDirTo(self, this, that):
+		"""
+			this->direc->taht
+			如果that在this的左边，则返回on the left of
+		"""
 		dirs = ["on", "in front of", "on the left of", "on the right of", "behind"]
 		insect = ["butterfly", "bee"]
 		if this.category in self.unmovable:
 			if that.category in self.unmovable:
 				# 都是静物
 				# 左右 前 后。后的角度判定大些
-				if that.isBottomEdgeAbove(this) and that.getDegreeTo(this) >= 30:
+				if that.isBottomEdgeAbove(this) and that.getDegreeTo(this) >= 30 and that.center.isAbove(this.center):
 					return "behind"
-				elif that.getDegreeTo(this) >= 45:
+				elif that.getDegreeTo(this) >= 45 or that.isWithinBothSides(this):
 					return "in front of"
 				elif that.center.isRightOf(this.center):
 					return "on the right of"
@@ -283,7 +196,7 @@ class ImageToText(object):
 				#  树上不会有地面动物
 
 				# 蝴蝶, bee:
-				# 只有左右，没
+				# 只有左右，没上
 				onHouseAnimal = ["chicken", "duck"] + insect
 				onBenchAnimal = ["people", "cat", "dog", "bird"] + insect
 				onFenceAnimal = ["chicken", "duck"] + insect
@@ -305,7 +218,7 @@ class ImageToText(object):
 							return "on"
 					else:
 						return "on"
-				if that.getDegreeTo(this) >= 45:
+				if that.getDegreeTo(this) >= 35:
 					return "in front of"
 				if that.center.isRightOf(this.center):
 					return "on the right of"
@@ -330,6 +243,70 @@ class ImageToText(object):
 			this.dir[direc].append(that)
 		print(that.num, that.category, direc, this.num, this.category)
 
+	def getPluralNoun(self, category):
+		if category in ["people", "sheep"]:
+			return category
+		if category[-1] == "y":
+			return category[:-1] + "ies"
+		else:
+			return category + "s"
+	def getSingleNoun(self, category):
+		if category == "people":
+			return "person"
+		return category
+	def getFollowDescription(self, follows, item, wholeDir = None):
+		# 描述一组动物用。item是第一个参照物，之后的参照物都是上一个描述的物体
+		texts = []
+		formerItem = item
+		for follow in follows:
+			direc = self.getDirTo(formerItem, follow)
+
+			text = ""
+			if follow.num > 1:
+				text += "%d %s are" % (follow.num, self.getPluralNoun(follow.category))
+			else:
+				text += "A %s is" % self.getSingleNoun(follow.category)
+
+			if follow.category in ["cow", "sheep", "horse", "rabbit"] and self.hasGrass and wholeDir != "on":
+				text += " grazing"
+
+			if formerItem.num > 1:
+				text += " %s the %s." % (direc, self.getPluralNoun(formerItem.category))
+			else:
+				text += " %s the %s." % (direc, self.getSingleNoun(formerItem.category))
+
+			texts.append(text)
+			formerItem = follow
+		return " ".join(texts)
+
+	def getUnmovableDescription(self, item, formerItem = None):
+		# 对一个静物进行描述
+		texts = []
+		unmovable = ""
+		if item.num > 1:
+			unmovable += "There are %d %s" % (item.num, self.getPluralNoun(item.category))
+		else:
+			unmovable += "There is a %s" % self.getSingleNoun(item.category)
+
+		if item.category in ["bus", "car", "truck"]:
+			unmovable += " running on the road"
+
+		if formerItem == None:
+			unmovable += "."
+		else:
+			direc = self.getDirTo(formerItem, item)
+			if formerItem.num > 1:
+				unmovable += " %s the %s." % (direc, self.getPluralNoun(formerItem.category))
+			else:
+				unmovable += " %s the %s." % (direc, self.getSingleNoun(formerItem.category))
+		texts.append(unmovable)
+
+		for direc in item.dir:
+			follows = item.dir[direc]
+			texts.append(self.getFollowDescription(follows, item, direc))
+
+		return " ".join(texts)
+
 
 	def getGroundItems(self):
 		"""生成低空下物体的描述
@@ -350,7 +327,7 @@ class ImageToText(object):
 		if self.plantNum["flower"] >= 1:
 			plantTexts.append("flowers")
 		if self.plantNum["grass"] >= 1:
-			plantTexts.append("grass")
+			self.hasGrass = True
 		plantText = " and ".join(plantTexts)
 		if len(plantTexts) > 0: # 有多朵花/草才进行描述
 			texts.append("There are many %s." % plantText) # eg. There are many grass and flowers.
@@ -379,8 +356,17 @@ class ImageToText(object):
 
 		if not hasUnmovable: # 只有动物
 			# 对动物接连描述
-			pass
-			return ""
+			firstAnimal = self.mergedItems[0]
+			# for ani in self.mergedItems:
+			# 	print(ani.category)
+			if firstAnimal.num > 1:
+				texts.append("There are %d %s." % (firstAnimal.num, self.getPluralNoun(firstAnimal.category)))
+			else:
+				texts.append("There is a %s." % self.getSingleNoun(firstAnimal.category))
+			if len(self.mergedItems) > 1:
+				texts.append(self.getFollowDescription(self.mergedItems[1:], firstAnimal))
+
+			return " ".join(texts)
 
 		# 把self.mergedItems处理放入items
 		items = []
@@ -401,13 +387,10 @@ class ImageToText(object):
 
 		for index, item in enumerate(items): # 对静物遍历
 			if index == 0:
-				texts.append(self.getDescription(item))
+				texts.append(self.getUnmovableDescription(item))
 			else:
 				formerItem = items[index - 1]
-				texts.append(self.getDescription(item, formerItem))
-
-
-
+				texts.append(self.getUnmovableDescription(item, formerItem))
 
 		return "".join(texts)
 	
@@ -418,11 +401,10 @@ class ImageToText(object):
 		"""
 		weather = self.getWeather()
 		distantView = self.getDistantView()
-		vehicle = self.getVehicle()
 		groundItems = self.getGroundItems()
 		bucketDiscription = self.getBucketDiscription()
 
-		texts = [weather, distantView, vehicle, groundItems, bucketDiscription]
+		texts = [weather, distantView, groundItems, bucketDiscription]
 		return " ".join([text for text in texts if text != ""])
 
 	def getAvgItem(self, items):
@@ -536,7 +518,7 @@ def writeHTML(texts):
 	<h1>week2 template</h1>
 	<body>
 	<br>
-	%for i in range(0,len(items)):
+	%for i in range(0, len(items)):
 	<img src={{\""""
 
 	filePath = args.json_dir + "\%d.png "
@@ -559,17 +541,16 @@ def writeHTML(texts):
 
 def main():
 	texts = []
-	for num in range(1, 100):
+	for num in range(0, 300):
 		items = Util.ReadJson(num, args.json_dir)
 		if items == None:
 			continue
 		print(num)
 		solution = ImageToText(items)
 		text = solution.getText()
+		print(text)
 		print("----------")
-		# test
-		# print("text is:", text)
-		# texts.append(text)
+		texts.append(text)
 	writeHTML(texts)
 	
 	
