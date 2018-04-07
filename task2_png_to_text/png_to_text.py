@@ -241,7 +241,6 @@ class ImageToText(object):
 			this.dir[direc] = [that]
 		else:
 			this.dir[direc].append(that)
-		print(that.num, that.category, direc, this.num, this.category)
 
 	def getPluralNoun(self, category):
 		if category in ["people", "sheep"]:
@@ -357,8 +356,6 @@ class ImageToText(object):
 		if not hasUnmovable: # 只有动物
 			# 对动物接连描述
 			firstAnimal = self.mergedItems[0]
-			# for ani in self.mergedItems:
-			# 	print(ani.category)
 			if firstAnimal.num > 1:
 				texts.append("There are %d %s." % (firstAnimal.num, self.getPluralNoun(firstAnimal.category)))
 			else:
@@ -461,14 +458,8 @@ class ImageToText(object):
 			while j < len(items) and items[j].category == item.category:
 				borderItems.append(items[j])
 				j += 1
-			# print("add", item.category, len(borderItems))
 			borderMergedItems.append(self.getAvgItem(borderItems))
 			i = j
-
-		# 打印边界合并后的物体的信息
-		# for item in borderMergedItems:
-		# 	print(item.category, item.num)
-		# print("-------------------")
 
 		# 把被边界分割的同种物体合并为一个
 		# 把borderMergedItems处理到splitItems中
@@ -497,17 +488,7 @@ class ImageToText(object):
 			splitItems.append(self.getAvgItem(toMergeItems))
 			borderMergedItems.remove(item)
 
-		# 打印动物合并后的物体的信息
-		# for item in splitItems:
-		# 	print(item.category, item.num)
-		# print("-------------------")
-
 		self.mergedItems = splitItems
-
-		# test 打印合并后的物体
-		for item in self.mergedItems:
-			c = item.category
-			print(item.position.top, item.category, item.num)
 
 def writeHTML(texts):
 	"""
