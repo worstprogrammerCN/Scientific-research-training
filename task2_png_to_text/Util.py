@@ -108,13 +108,14 @@ class Size(object):
 		
 
 class Item(object):
-	"""每个Item都有位置和大小的属性，还有自己的类型和编号(@code{oid})"""
+	"""每个Item都有数量，位置和大小的属性，还有自己的类型和编号(@code{oid})"""
 	def __init__(self, category, oid, position, size):
 		"""
 		Args:
 			category: 物体的类型。比如"tree", "car"
 			oid: 物体的编号。比如"tree3", "cat2"
-			position：物体的位置。
+			num: 该物体的数量
+			position：物体的位置。如果有多个物体，则是平均位置
 			size：物体的大小
 			leftTop：一个@code{position}，物体所占矩形的左上角
 			rightBottom: 一个code{position}, 物体所占矩形的右下角
@@ -137,6 +138,7 @@ class Item(object):
 		super(Item, self).__init__()
 		self.category = category
 		self.oid = oid
+		self.num = 1
 		self.position = position
 		self.size = size
 		self.center = Position(position.left + size.width / 2, position.top + size.height / 2, position.zIndex)
@@ -240,6 +242,7 @@ class Item(object):
 	def isRightFrontOf(self, item):
 		return self.isBottomEdgeBelow(item)\
 		 and self.center.isRightOf(item.center)\
+		 and not self.center.isInside(item)\
 		 and self.isDiagonalTo(item)
 
 	def isLeftFrontOf(self, item):
@@ -259,7 +262,10 @@ class Item(object):
 
 	def isOn(self, item):
 		return self.isBottomEdgeAbove(item)\
-		 and self.isVerticalTo(item)
+		 and self.center.isInside(item)
+
+	def isWithinBothSides(self, item):
+		return self.center.isRightOf(item.leftTop) and self.center.isLeftOf(item.rightBottom)
 
 	def edgeDistance(self, item):
 		"""返回两个对象的"边距离"
@@ -339,8 +345,8 @@ class Item(object):
 				nearestDist = dist
 
 		dictDirs = {
-			"in front of" : self.isFrontOf, "on the right front of" : self.isRightFrontOf, "on the left front of" : self.isLeftFrontOf,\
-			"on the right of" : self.isRightOf, "on the left of" : self.isLeftOf, "on" : self.isOn, "on the left behind of" : self.isLeftBehind,\
+			"on" : self.isOn, "in front of" : self.isFrontOf, "on the right front of" : self.isRightFrontOf, "on the left front of" : self.isLeftFrontOf,\
+			"on the right of" : self.isRightOf, "on the left of" : self.isLeftOf, "on the left behind of" : self.isLeftBehind,\
 			"on the right behind of" : self.isRightBehind
 		}
 
