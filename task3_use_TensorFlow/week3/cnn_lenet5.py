@@ -1,76 +1,131 @@
-import tensorflow as tf  
-import sys  
-from tensorflow.examples.tutorials.mnist import input_data  
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+# Imports
+import numpy as np
+import tensorflow as tf
+
+tf.logging.set_verbosity(tf.logging.INFO)
+
+def cnn_model_fn(features, labels, mode):
+  """Model function for CNN."""
+  # 一批100组数据
+
+  # 输入层
+  input_layer = tf.reshape(features["x"], [-1, 28, 28, 1])
+  print("input_layer:", input_layer) # Input Layer: (100, 28, 28, 1)
+  # 第一层 卷积层
+  conv1 = tf.layers.conv2d( # 使用32个filter
+      inputs=input_layer,
+      filters=6,
+      kernel_size=[5, 5],
+      padding="same",
+      activation=tf.nn.relu,
+      name="conv1")
+  print("conv1:", conv1) # conv1: (100, 28, 28, 32)
+
+  # 第二层 池化层
+  pool1 = tf.layers.max_pooling2d(inputs=conv1, pool_size=[2, 2], strides=2)
+
+  print("pool1:", pool1) # pool1: (100, 14, 14, 32)
+
+  # 第三层卷积层与第四层池化层
+  conv2 = tf.layers.conv2d(
+      inputs=pool1,
+      filters=16,
+      kernel_size=[5, 5],
+      padding="valid",
+      activation=tf.nn.relu)
+  print("conv2:", conv2) # conv2 (100, 14, 14, 64)
+  pool2 = tf.layers.max_pooling2d(inputs=conv2, pool_size=[2, 2], strides=2)
+  print("pool2:", pool2) # pool2 (100, 7, 7, 64)
+
+  # 拉直矩阵
+  pool2_shape = pool2.get_shape().as_list()
+  flat_size = pool2_shape[1] * pool2_shape[2] * pool2_shape[3]
+  pool2_flat = tf.reshape(pool2, [-1, flat_size]) 
+
+  # 三层全连接层
+  dense = tf.layers.dense(inputs=pool2_flat, units=120, activation=tf.nn.relu)
+  dense2 = tf.layers.dense(inputs=dense, units=84, activation=tf.nn.relu)
+  logits = tf.layers.dense(inputs=dense2, units=10)
+
+  print("dense:", dense)
+  print("dense2:", dense2)
+  print("logits:", logits) # logits (100, 10)
+  predictions = {
+      # Generate predictions (for PREDICT and EVAL mode)
+      "classes": tf.argmax(input=logits, axis=1),
+      # Add `softmax_tensor` to the graph. It is used for PREDICT and by the
+      # `logging_hook`.
+      "probabilities": tf.nn.softmax(logits, name="softmax_tensor")
+  }
+
+  # Configure the Predict Op (for PREDICT mode)
+  if mode == tf.estimator.ModeKeys.PREDICT:
+    return tf.estimator.EstimatorSpec(mode=mode, predictions=predictions)
+
+  # Calculate Loss (for both TRAIN and EVAL modes)
+  loss = tf.losses.sparse_softmax_cross_entropy(labels=labels, logits=logits)
+
+  # Configure the Training Op (for TRAIN mode)
+  if mode == tf.estimator.ModeKeys.TRAIN:
+    optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.001)
+    train_op = optimizer.minimize(
+        loss=loss,
+        global_step=tf.train.get_global_step())
+
+    my_acc = tf.reduce_mean(tf.cast(tf.equal(tf.cast(labels, tf.int64), predictions['classes']), tf.float32))
+    tensors_to_log = {'Accuracy': my_acc}
+    logging_hook = tf.train.LoggingTensorHook(tensors=tensors_to_log, every_n_iter=100)
+
+    return tf.estimator.EstimatorSpec(mode=mode, loss=loss, train_op=train_op, training_hooks=[logging_hook])
+
+  # Add evaluation metrics (for EVAL mode)
+  eval_metric_ops = {
+      "accuracy": tf.metrics.accuracy(
+          labels=labels, predictions=predictions["classes"])}
+  return tf.estimator.EstimatorSpec(
+      mode=mode, loss=loss, eval_metric_ops=eval_metric_ops)
+
+def main(unused_param):
+  # Load training and eval data
+  mnist = tf.contrib.learn.datasets.load_dataset("mnist")
+  train_data = mnist.train.images # Returns np.array
+  train_labels = np.asarray(mnist.train.labels, dtype=np.int32)
+  eval_data = mnist.test.images # Returns np.array
+  eval_labels = np.asarray(mnist.test.labels, dtype=np.int32)
+
+  mnist_classifier = tf.estimator.Estimator(
+    model_fn=cnn_model_fn)
+
+  # Set up logging for predictions
+  # tensors_to_log = {"probabilities": "softmax_tensor"}
+  tensors_to_log = {}
+  logging_hook = tf.train.LoggingTensorHook(
+      tensors=tensors_to_log, every_n_iter=50)
+
+  # Train the model
+  train_input_fn = tf.estimator.inputs.numpy_input_fn(
+      x={"x": train_data},
+      y=train_labels,
+      batch_size=100,
+      num_epochs=None,
+      shuffle=True)
+  mnist_classifier.train(
+      input_fn=train_input_fn,
+      steps=20000)
+
+  # Evaluate the model and print results
+  eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+      x={"x": eval_data},
+      y=eval_labels,
+      num_epochs=1,
+      shuffle=False)
+  eval_results = mnist_classifier.evaluate(input_fn=eval_input_fn)
+  print(eval_results)
 
 
-"""
-训练3000次时已能接近1.000正确率
-"""
-x = tf.placeholder("float", shape=[None, 784])  
-y_ = tf.placeholder("float", shape=[None, 10])  
-
-
-def weight_variable(shape):  
-  initial = tf.truncated_normal(shape, stddev=0.1)  
-  return tf.Variable(initial)  
-  
-def bias_variable(shape):  
-  initial = tf.constant(0.1, shape=shape)  
-  return tf.Variable(initial)  
-  
-def conv2d(x, W):  
-  return tf.nn.conv2d(x, W, strides=[1, 1, 1, 1], padding='SAME')  
-  
-def max_pool_2x2(x):  
-  return tf.nn.max_pool(x, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')  
-  
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)  
-  
-sess = tf.InteractiveSession()  
-
-
-# 第一层卷积核池化层
-x_image = tf.reshape(x, [-1, 28, 28, 1])  
-W_conv1 = weight_variable([5, 5, 1, 32])  
-b_conv1 = bias_variable([32])  
-h_conv1 = tf.nn.relu(conv2d(x_image, W_conv1) + b_conv1)  
-h_pool1 = max_pool_2x2(h_conv1)  
-  
-# 第二层卷积核池化层
-W_conv2 = weight_variable([5, 5, 32, 64])  
-b_conv2 = bias_variable([64])  
-h_conv2 = tf.nn.relu(conv2d(h_pool1, W_conv2) + b_conv2)  
-h_pool2 = max_pool_2x2(h_conv2)  
-
-# Now image size is reduced to 7*7  
-W_fc1 = weight_variable([7 * 7 * 64, 1024])  
-b_fc1 = bias_variable([1024])  
-h_pool2_flat = tf.reshape(h_pool2, [-1, 7*7*64])  
-h_fc1 = tf.nn.relu(tf.matmul(h_pool2_flat, W_fc1) + b_fc1)  
-  
-# dropout层
-keep_prob = tf.placeholder("float")  
-h_fc1_drop = tf.nn.dropout(h_fc1, keep_prob)  
-  
-# full connect层与输出层
-W_fc2 = weight_variable([1024, 10])  
-b_fc2 = bias_variable([10])  
-y_conv=tf.nn.softmax(tf.matmul(h_fc1_drop, W_fc2) + b_fc2)  
-  
-cross_entropy = -tf.reduce_sum(y_*tf.log(y_conv))  
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)  
-correct_prediction = tf.equal(tf.argmax(y_conv,1), tf.argmax(y_,1))  
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, "float"))  
-sess.run(tf.global_variables_initializer())  
-  
-for i in range(20000):  
-  batch = mnist.train.next_batch(50)  
-  if i%100 == 0:  
-    train_accuracy = accuracy.eval(feed_dict={x:batch[0], y_: batch[1], keep_prob: 1.0})  
-    print("step %d, training accuracy %.3f"%(i, train_accuracy))
-  train_step.run(feed_dict={x: batch[0], y_: batch[1], keep_prob: 0.5})  
-  
-print("Training finished")
-  
-test_acc = accuracy.eval(feed_dict={x: mnist.test.images, y_: mnist.test.labels, keep_prob: 1.0})
-print("test accuracy %.3f" % test_acc)
+if __name__ == "__main__":
+  tf.app.run()

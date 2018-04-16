@@ -23,7 +23,6 @@ class ImageToText(object):
 		"""
 		
 		Args:
-			backgroundItem: 背景物体，一般可用于描述天气、天空和远处的山。
 			inHighSky: 在高空飞行的物体
 			inLowSky: 在低空飞行的物体，视为第二级物体。
 
@@ -36,7 +35,6 @@ class ImageToText(object):
 
 		self.plants = ["tree", "grass", "flower"]
 
-		self.backgroundItem = ["mountain", "sun", "moon", "star", "cloud", "bird", "airplane", "balloon"]
 		self.inHighSky = ["bird", "airplane", "balloon"]
 
 		self.fruit = ["banana", "apple", "pear", "grape", "pineapple"]
@@ -353,6 +351,9 @@ class ImageToText(object):
 				hasUnmovable = True
 				self.mergedItems[0], self.mergedItems[index] = self.mergedItems[index], self.mergedItems[0]
 
+		if len(self.mergedItems) == 0:
+			return ""
+
 		if not hasUnmovable: # 只有动物
 			# 对动物接连描述
 			firstAnimal = self.mergedItems[0]
@@ -436,10 +437,13 @@ class ImageToText(object):
 
 	def mergeSameItem(self):
 
+		#print("items", [item.oid for item in self.items])
 		arr = ["mountain", "flower", "grass", "cloud", "sun", "bird", "airplane", "moon", "star"]
 		items = [item for item in self.items if item.category not in arr]
 		items = sorted(items, key = lambda item : item.position.zIndex )
 
+
+		# print("items", [item.oid for item in items])
 		# 把边界物体合并
 		# 把items处理到borderMergedItems中
 		i = 0
@@ -463,6 +467,7 @@ class ImageToText(object):
 
 		# 把被边界分割的同种物体合并为一个
 		# 把borderMergedItems处理到splitItems中
+		# print("borderMergedItems", [item.oid for item in borderMergedItems])
 		i = 0
 		splitItems = []		
 		while i < len(borderMergedItems):
