@@ -73,7 +73,7 @@ class Position(object):
     def isLeftAboveEqual(self, position):
         return self.isLeftEqual(position) and self.isAboveEqual(position)
 
-    # 同水平/竖直线	
+    # 同水平/竖直线   
     def isVerticalTo(self, position):
         return self.left == position.left
 
@@ -91,16 +91,16 @@ class Position(object):
     def getDegreeTo(self, position):
         """得到与另一个位置的连线 与 水平线形成的角度
 
-		Args:
-			dx: 两个位置的水平距离，绝对值
-			dy: 两个位置的竖直距离，绝对值
-			degree: 两个
-		
-		Returns:
-			一个角度。自己与另一个位置的连线 与 水平线形成的角度。
-			这个角度可以是钝角或者锐角，我们取锐角的大小。
-			当@code{dx}为0时, 角度为90度，直接返回90。
-		"""
+        Args:
+            dx: 两个位置的水平距离，绝对值
+            dy: 两个位置的竖直距离，绝对值
+            degree: 两个
+        
+        Returns:
+            一个角度。自己与另一个位置的连线 与 水平线形成的角度。
+            这个角度可以是钝角或者锐角，我们取锐角的大小。
+            当@code{dx}为0时, 角度为90度，直接返回90。
+        """
         dx = abs(self.left - position.left)
         dy = abs(self.top - position.top)
         if dx == 0:
@@ -111,13 +111,13 @@ class Position(object):
 class Size(object):
     """一个@code{Item}所占矩形区域的大小
 
-	我们认为，一个@code{Item}在一张图上所占区域是一个矩形，这个矩形就会有长和宽两个属性。
+    我们认为，一个@code{Item}在一张图上所占区域是一个矩形，这个矩形就会有长和宽两个属性。
 
-	Attributes:
-		width: 矩形的宽
-		height: 矩形的长
+    Attributes:
+        width: 矩形的宽
+        height: 矩形的长
 
-	"""
+    """
 
     def __init__(self, width, height):
         super(Size, self).__init__()
@@ -182,8 +182,8 @@ class Item(object):
 
     def showSelf(self):
         """
-			输出自己左上角的位置，以及自己的所占矩形区域的大小。
-		"""
+            输出自己左上角的位置，以及自己的所占矩形区域的大小。
+        """
         print("--------------an %s----------------" % self.category)
         print("leftTop:")
         self.leftTop.showPosition()
@@ -193,9 +193,9 @@ class Item(object):
 
     def isInteractWith(self, item):
         """
-			判断两个item是否相交。关键在于判断它们占有的矩形区域是否相交。
-			详细的判断逻辑较难阐述，百度上有很多解释清楚的，此处省去逻辑。
-		"""
+            判断两个item是否相交。关键在于判断它们占有的矩形区域是否相交。
+            详细的判断逻辑较难阐述，百度上有很多解释清楚的，此处省去逻辑。
+        """
         if self.leftTop.isRightOf(item.rightBottom) or self.leftTop.isBelow(item.rightBottom):
             return False
         if self.leftTop.isInside(item):
@@ -210,9 +210,9 @@ class Item(object):
 
     def getDegreeTo(self, item):
         """
-			返回自己的中心与对方的中心的连线 与 水平线 形成的角度。
-			这个角度可以是钝角或者锐角，我们取的是锐角的大小。
-		"""
+            返回自己的中心与对方的中心的连线 与 水平线 形成的角度。
+            这个角度可以是钝角或者锐角，我们取的是锐角的大小。
+        """
         return self.center.getDegreeTo(item.center)
 
     def isHorizonTalTo(self, item):
@@ -292,21 +292,21 @@ class Item(object):
 
     def edgeDistance(self, item):
         """返回两个对象的"边距离"
-		
-		"边距离"是临时构造的词语，用于形象地反映我想表示距离的方式。
-		我们计算两个对象最接近的两条边的距离。
-		比如@code{self}在左下，@code{item}在右上，
-		那么@code{dy}是@code{self}的顶边与@code{item}的底边的竖直距离
-		@code{dx}是@code{self}的右边与@code{item}的左边的水平距离
-		然后我们取距离为@code{sqrt(dx ^ 2 + dy ^ 2)}
+        
+        "边距离"是临时构造的词语，通过计算两个对象最接近的两条边的距离，
+        来形象地反映两个物体间的远近程度。
+        比如@code{self}在左下，@code{item}在右上，
+        那么@code{dy}是@code{self}的顶边与@code{item}的底边的竖直距离
+        @code{dx}是@code{self}的右边与@code{item}的左边的水平距离
+        然后我们取距离为@code{sqrt(dx ^ 2 + dy ^ 2)}
 
-		Args:
-			dy: @code{self}与@code{item}的最近的顶/底边之间的竖直距离。这个值必须为非负数
-			dx: @code{self}与@code{item}的最近的左/右边之间的水平距离。这个值必须为非负数
+        Args:
+            dy: @code{self}与@code{item}的最近的顶/底边之间的竖直距离。这个值必须为非负数
+            dx: @code{self}与@code{item}的最近的左/右边之间的水平距离。这个值必须为非负数
 
-		Returns:
-			两个对象最接近的两条边的距离。
-		"""
+        Returns:
+            两个对象最接近的两条边的距离。
+        """
         dy = 0
         if self.leftTop.top > item.rightBottom.top:
             dy = abs(self.leftTop.top - item.rightBottom.top)
@@ -324,34 +324,34 @@ class Item(object):
     def findNearestItem(self, items, filter, isFirstLayer=True):
         """寻找边距离最近的@code{item}
 
-		我们描述一副图片的策略是：
-			先为每个第二级物体(也就是次要的物体)找到第一级物体(也就是主要的物体)的参照物。
-			然后再为每个第一级物体找到另一个第一级物体的参照物。
-			这样，每个主要物体都能一一定位，关联到它们上的次要物体也都能得到定位。
+        我们描述一副图片的策略是：
+            先为每个第二级物体(也就是次要的物体)找到第一级物体(也就是主要的物体)的参照物。
+            然后再为每个第一级物体找到另一个第一级物体的参照物。
+            这样，每个主要物体都能一一定位，关联到它们上的次要物体也都能得到定位。
 
-		所以本函数的行为是：
-			如果自己是第一级的物体，找的就是最近的第一级的物体。通过把自己关联到那个物体的@code{nextItem}和@code{nextdir}变量上，
-			为那个物体做上标记，让其能"找到"自己。
-			如果自己是第二级的物体，找的仍然是最近的第一级物体。将自己关联到那个物体的@code{dir}变量上。
+        所以本函数的行为是：
+            如果自己是第一级的物体，找的就是最近的第一级的物体。通过把自己关联到那个物体的@code{nextItem}和@code{nextdir}变量上，
+            为那个物体做上标记，让其能"找到"自己。
+            如果自己是第二级的物体，找的仍然是最近的第一级物体。将自己关联到那个物体的@code{dir}变量上。
 
-		Args:
-			items: 元素为@code{item}的数组。本函数会从中找到离自己"边距离"@code{item}(自己除外)
-			filter: 字符串的数组。包含了满足条件的@code{item}的类别名字。也就是说，最近的那个@code{item}的类别必须在@code{item}内。
-				在本例中，这个变量都是包含了所有第一级物体类别名的数组，旨在保证最近的物体是第一级物体。
-			isFirstLayer: 自己是否属于第一级的物体。如果是，则
-			nearestItem: 最近的@code{item}
-			nearestDist: 最近的@code{item}与自己的"边距离"
+        Args:
+            items: 元素为@code{item}的数组。本函数会从中找到离自己"边距离"@code{item}(自己除外)
+            filter: 字符串的数组。包含了满足条件的@code{item}的类别名字。也就是说，最近的那个@code{item}的类别必须在@code{item}内。
+                在本例中，这个变量都是包含了所有第一级物体类别名的数组，旨在保证最近的物体是第一级物体。
+            isFirstLayer: 自己是否属于第一级的物体。如果是，则
+            nearestItem: 最近的@code{item}
+            nearestDist: 最近的@code{item}与自己的"边距离"
 
-		Returns:
-			@code{item} or None.
-			@{item}:
-				只要有"最近的物体"，那么不论自己是第一级还是第二级的物体，返回的都是最近的第一级物体。
-			None:
-				如果@code{items}内，没有一个@{item}满足@code{filter}的条件，
-				就找不到最近的满足条件的@{item}，也就没有"最近的物体",
-				此时，就返回None。
+        Returns:
+            @code{item} or None.
+            @{item}:
+                只要有"最近的物体"，那么不论自己是第一级还是第二级的物体，返回的都是最近的第一级物体。
+            None:
+                如果@code{items}内，没有一个@{item}满足@code{filter}的条件，
+                就找不到最近的满足条件的@{item}，也就没有"最近的物体",
+                此时，就返回None。
 
-		"""
+        """
         nearestItem = None
         nearestDist = -1
         for item in items:
@@ -398,14 +398,62 @@ class Item(object):
             self.nearestItem = nearestItem
             return nearestItem
 
+def get_avg_item(items):
+    """
+        输入一个同类型的item数组，计算它们的平均位置和大小，合并成一个item并返回
+    """
+    category = items[0].category
+    oid = items[0].oid
+    total_left = 0
+    total_top = 0
+    z_index = items[0].position.zIndex
+
+    total_height = 0
+    total_width = 0
+    num = 0
+
+    for item in items:
+        total_left += item.position.left * item.num
+        total_top += item.position.top * item.num
+        total_height += item.size.height * item.num
+        total_width += item.size.width * item.num
+
+        num += item.num
+
+    position = Position(total_left / num, total_top / num, z_index)
+    size = Size(total_width / num, total_height / num)
+
+    item = Item(category, oid, position, size)
+    item.num = num
+    return item
+
+
+class ItemGroup(object):
+    items = []
+    category = None
+
+    def __init__(self, items, category):
+        self.items = items
+        self.category = category
+        avg_item = get_avg_item(items)
+
+    def get_items(self):
+        return self.items
+
+    def get_num_items(self):
+        return len(self.items)
+
+    def get_category(self):
+        return self.category
+
 
 def initDictItem(dictItem):
     '''
-		初始化物体的字典。
-		读取处理'./colorMap_46.txt'得到物体与编号对应关系的字典。
-		Args:
-			dictItem: 字典。key是整形数，含义是编号；value是字符串，含义是物体的名字
-	'''
+        初始化物体的字典。
+        读取处理'./colorMap_46.txt'得到物体与编号对应关系的字典。
+        Args:
+            dictItem: 字典。key是整形数，含义是编号；value是字符串，含义是物体的名字
+    '''
     f = open('./colorMap_46.txt')
 
     index = 0
@@ -431,7 +479,7 @@ def getItemCategory(class_gt, instance_gt, zIndex):
     for i in range(len(instance_gt)):
         for j in range(len(instance_gt[0])):
             # if instance_gt[i][j] > 0:
-            # 	print(instance_gt[i][j])
+            #   print(instance_gt[i][j])
             if instance_gt[i][j] == zIndex:
                 cateGoryIndex = class_gt[i][j]
                 return (dictItem[class_gt[i][j]], cateGoryIndex, i, j)
@@ -442,8 +490,8 @@ def getItemCategory(class_gt, instance_gt, zIndex):
 def getItem(class_gt, instance_gt, zIndex):
     # type: (object, object, object) -> object
     '''
-		i, j: 表示矩阵里的第i行, 第j列
-	'''
+        i, j: 表示矩阵里的第i行, 第j列
+    '''
     (category, cateGoryIndex, iFirstPixel, jFirstPixel) = getItemCategory(class_gt, instance_gt, zIndex)
 
     left = jFirstPixel  # 初始化
@@ -481,9 +529,9 @@ def readMat(class_gt_mat, instance_gt_mat):
     # matD = mat_dir + 'CLASS_GT/sample_%d_class.mat' % index
     # print(matD)
     # if os.path.exists(matD):
-    # 	print("yes")
+    #   print("yes")
     # else:
-    # 	print("no")
+    #   print("no")
 
     # class_gt_mat = scipy.io.loadmat(mat_dir + 'CLASS_GT/sample_%d_class.mat' % index)  # 读取class_gt mat文件
     # instance_gt_mat = scipy.io.loadmat(mat_dir + 'INSTANCE_GT/sample_%d_instance.mat' % index)  # 读取mat文件
@@ -494,9 +542,9 @@ def readMat(class_gt_mat, instance_gt_mat):
 
     (numsForHandWritten, numsForPicture) = findNums(instance_gt)
     # if len(numsForHandWritten) != 0:
-    # 	for zIndex in numsForHandWritten:
-    # 		item = getItem(class_gt, instance_gt, zIndex)
-    # 		items.append(item)
+    #   for zIndex in numsForHandWritten:
+    #       item = getItem(class_gt, instance_gt, zIndex)
+    #       items.append(item)
 
     if len(numsForPicture) != 0:
         for zIndex in numsForPicture:
@@ -549,6 +597,7 @@ def ReadJson(number, dir_path):
                 items.append(item)
             return items
     except Exception as e:
+        print("maybe no such file", path)
         return None
 
 
