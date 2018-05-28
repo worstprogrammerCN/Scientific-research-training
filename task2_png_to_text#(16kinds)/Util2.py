@@ -707,9 +707,11 @@ class ItemCollection(object):
             raise TypeError("type of dict_collection must be {str: []}.", type(dict_collection))
 
         # 为dict_collection每个item或group设置称呼
+        self.num_total = {}
         for category in dict_collection:
             items_group = dict_collection[category]
             ItemCollection._set_name_for_item_or_groups(items_group)
+            self.num_total[category] = len(items_group)
 
         self.collection: [] = ItemCollection.compress_dict(dict_collection)
 
@@ -902,14 +904,66 @@ class ItemCollection(object):
             for item_or_group, index in item_or_groups:
                 item_or_group.set_name(num_total=num_total, index=index)
 
+    @staticmethod
+    def get_single_noun(category):
+        if category == "people":
+            return "person"
+        return category
+
+    @staticmethod
+    def get_plural_noun(category):
+        if category in ["people", "sheep"]:
+            return category
+        if category[-1] == "y":
+            return category[:-1] + "ies"
+        elif category[-1] == "s" or category[-2:] == "ch":
+            return category + "es"
+        else:
+            return category + "s"
+
+    @staticmethod
+    def get_noun(category, num):
+        if num == 1:
+            return ItemCollection.get_single_noun(category)
+        elif num > 1:
+            return ItemCollection.get_plural_noun(category)
+        else:
+            raise ValueError("num must be larger than 0. got %d" % num)
+
     def get_description(self):
-        description = []
+        total_description = []
+        each_description = []
+
+
+        num_total = sum(self.num_total.values())
+        if num_total == 1:
+            total_description_head = "There is"
+        elif num_total > 1:
+            total_description_head = "There are"
+        else:
+            return ""
+
+        total_items_description = []
+        for category in self.num_total.keys():
+            num = self.num_total[category]
+            if num == 1:
+                total_items_description.append("a %s" % ItemCollection.get_noun(category, num))
+            elif num > 1:
+                total_items_description.append("%d %s" % (num, ItemCollection.get_noun(category, num)))
+        total_items_description = ",".join(total_items_description)
+
         for item_or_group in self.collection:
             item_name = item_or_group.get_name(is_sentence_head=True)
             if item_or_group.reference is not None:
-                description.append("%s is %s %s." % (item_name,
-                                   item_or_group.direction, item_or_group.reference.get_name()))
+                each_description.append("%s is %s %s." % (item_name,
+                                        item_or_group.direction, item_or_group.reference.get_name()))
+
+        description = []
+        total_description = "%s %s." % (total_description_head, total_items_description)
+        description.append(total_description)
+        description.extend(each_description)
         return " ".join(description)
+
 
 def init_dict_item(dict_item):
     '''

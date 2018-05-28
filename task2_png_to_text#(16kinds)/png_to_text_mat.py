@@ -231,10 +231,12 @@ class ImageToText(object):
         print(unmovable.get_description())
         print(trees.get_description())
         print(movable.get_description())
+
+        ground_items_text = " ".join([unmovable.get_description(), trees.get_description(), movable.get_description()])
         # self.set_name_for_item_collection(CATEGORIES_TREE)
         # self.set_name_for_item_collection(CATEGORIES_MOVABLE)
 
-        return ""
+        return ground_items_text
 
     def get_grass_road_text(self):
         """
