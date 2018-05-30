@@ -1,10 +1,6 @@
 # -*- coding: utf-8 -*-
 import png_to_text_mat
-from operator import itemgetter, attrgetter
-import webbrowser
 import argparse
-import os
-import scipy.io
 
 parser = argparse.ArgumentParser()
 # parser.add_argument("--mat_dir", type=str, default="../val/level0/", help="Mat Directory")#path of mat
