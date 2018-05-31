@@ -8,12 +8,14 @@ import glob
 parser = argparse.ArgumentParser()
 args = parser.parse_args()
 
-data_save_base_dir = r'C:\Users\Administrator\Desktop\testData2'
+data_save_base_dir = r'C:\Users\jj\Desktop\testData2'
+
 
 def get_all_test_data():
     files = glob.glob(data_save_base_dir + '\seg_npzs\*.npz')
     test_ids = [int(file.split("\\")[-1].split('_')[-2]) for file in files]
     return test_ids
+
 
 def read_npz(data_save_base_dir, single_image_id):
     npz_name = os.path.join(data_save_base_dir + '\seg_npzs', str(single_image_id) + '_datas.npz')
@@ -22,7 +24,9 @@ def read_npz(data_save_base_dir, single_image_id):
     ins_labels = npz['labels']  # contains some class out of the 16 classes
     return ins_boxes, ins_labels
 
+
 def main():
+    # test_ids = [33]
     test_ids = get_all_test_data()
     for i in test_ids:
         print("----------number %d----------" % i)
@@ -30,8 +34,8 @@ def main():
         caption, index = png_to_text_mat.png2text(pred_boxes, pred_class_ids)
         print(caption)
         print("index", index)
-        print("sorted index", sorted(index))
-        print(len(index), len(pred_class_ids))
+        # print("sorted index", sorted(index))
+        # print(len(index), len(pred_class_ids))
 
 
 if __name__ == '__main__':

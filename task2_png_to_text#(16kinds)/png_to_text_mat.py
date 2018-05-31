@@ -27,10 +27,12 @@ class ImageToText(object):
         for item in self.items:
             cate = item.category
             if cate == 'sun' or cate == 'moon':
+                self.index.append([-1])
                 return dictWeather[cate]
             elif cate == 'cloud':
                 is_cloudy = True
         if is_cloudy:
+            self.index.append([-1])
             return dictWeather['cloud']
         else:
             return ""
@@ -54,19 +56,33 @@ class ImageToText(object):
                 sky_item_texts.append("a " + cate)
                 sky_item_ids.append(index)
         texts = []
-        # describe clouds
-        if num_cloud == 1:
-            texts.append('A clooud is Flating in the air.')
-        elif num_cloud >= 2:
-            texts.append('Many clouds are floating in the air.')
 
+        """
+            描述太阳和月亮
+        """
         num_sky_items = len(sky_item_texts)
         if num_sky_items >= 1:
             be_verb = "is" if num_sky_items == 1 else "are"
             sky_items_text = "There %s %s in the sky." % (be_verb, " and ".join(sky_item_texts))
             texts.append(sky_items_text)
+
+        """
+            描述云
+        """
+        if num_cloud == 1:
+            texts.append('A cloud is Floating in the air.')
+        elif num_cloud >= 2:
+            texts.append('Many clouds are floating in the air.')
+
+        """
+            为太阳、月亮和云的两句话的描述添加Index
+        """
+        if len(sky_item_ids) > 0:
+            self.index.append(sky_item_ids)
+        if len(cloud_ids) > 0:
+            self.index.append(cloud_ids)
+
         distant_view_texts = " ".join(texts)
-        self.index.extend(cloud_ids + sky_item_ids)
         return distant_view_texts
 
     def get_ground_items(self):
@@ -91,12 +107,12 @@ class ImageToText(object):
         trees_description, trees_index = trees.get_description()
         movable_description, movable_index = movable.get_description()
 
-        ground_items_text = " ".join([unmovable_description, trees_description, movable_description])
+        descriptions = [unmovable_description, trees_description, movable_description]
+        indexes_list = [unmovable_index, trees_index, movable_index]
+        for indexes in indexes_list:
+            self.index.extend(indexes)
 
-        print("-----3 ground_items index----")
-        print(unmovable_index, trees_index, movable_index)
-        print("-----------------------------")
-        self.index.extend(unmovable_index + trees_index + movable_index)
+        ground_items_text = " ".join([des for des in descriptions if des != ""])
         return ground_items_text
 
     def get_grass_road_text(self):
@@ -116,20 +132,14 @@ class ImageToText(object):
                 has_road = True
                 road_ids.append(index)
 
-        grass_road = []
+        grass_road_text = []
         if has_grass:
-            grass_road.append("grass")
+            self.index.append([-1])
+            grass_road_text.append("All things are on grass.")
         if has_road:
-            grass_road.append("road")
-        if has_grass or has_road:
-            grass_road_text = "All things are on " + " and ".join(grass_road) + "."
-        else:
-            grass_road_text = ""
-        self.index.extend(road_ids)
-        print("-------grass road index------")
-        print(road_ids)
-        print("-----------------------------")
-        return grass_road_text
+            self.index.append(road_ids)
+            grass_road_text.append("There is a road.")
+        return " ".join(grass_road_text)
 
     def get_text(self):
         """

@@ -313,7 +313,7 @@ class Item(object):
         elif y >= 1.75:
             y = 2
         else:
-            y =  1
+            y = 1
         if image_positions[y] == "middle":
             return "in the " + image_positions[y]
         else:
@@ -587,7 +587,7 @@ class ItemGroup(object):
 
     @property
     def image_position(self):
-        return "back"
+        return "in the distance"
 
     def get_noun_with_num(self, is_sentence_head=False):
         return "%s %s" % (NUMBER[self.num - 1], self.get_plural_noun())
@@ -739,8 +739,6 @@ class ItemGroup(object):
             return None
 
     def find_reference(self, unmovable_reference=None, tree_reference=None, used_reference=None):
-
-        print(".", self.category)
         if used_reference is None:
             # 描述本group时，并没有使用过参照物，说明这个group是图片中最靠后的(在collection定是第一个group)，且没有更高优先级的物体了，
             # 所以这个group根本就找不到参照物。
@@ -752,14 +750,16 @@ class ItemGroup(object):
             return
 
         """
-        为group内第一个Item找参照物
-       """
+        为group内第一个Item找参照物。
+        如果没有静物，首先不可能是"unmovable"模式下。"tree"模式下，树不需要为第一个物体找参照物。
+        "movable"模式下，就要试图以树为参照物，如果连树也没有，就不用找参照物了。
+        """
         first_item: Item = self.items[0]
         nearest = None
-        if unmovable_reference is None:
-            pass
-        elif self.type == "unmovable" or self.type == "tree":
-            if len(unmovable_reference) == 1:
+        if self.type == "unmovable" or self.type == "tree":
+            if unmovable_reference is None:
+                pass
+            elif len(unmovable_reference) == 1:
                 # 只有一个可参照物，这个必定是使用过的那个。
                 # 但没有别的参照物能用了，首个item只能依然用这个
                 nearest: Item = unmovable_reference[0]
@@ -768,13 +768,17 @@ class ItemGroup(object):
                 unmovable_reference.remove(used_reference)
                 nearest: Item = min(unmovable_reference, key=lambda x: x.edge_distance(first_item))
         if self.type == "movable":
-            # 预设条件: 静物至少有一个，树/树群可能有也可能没有
-            if len(unmovable_reference) == 1 and len(tree_reference) > 0:
-                nearest: Item = tree_reference[0]
-            elif len(unmovable_reference) == 1 and len(tree_reference) == 0:
+            # 预设条件: 静物，树/树群都是既可能有，也可能没有
+            if len(unmovable_reference) == 0 and len(tree_reference) == 0:  # 没有参照物，略过
+                pass
+            elif len(unmovable_reference) == 0 and len(tree_reference) > 0:
+                nearest: Item = min(tree_reference, key=lambda x: x.edge_distance(first_item))  # 没有静物，有树，找最近的树为参照物
+            elif len(unmovable_reference) == 1 and len(tree_reference) > 0:  # 唯一的静物一定已经被group作为参照物了，就以最近的树为参照物。
+                nearest: Item = min(tree_reference, key=lambda x: x.edge_distance(first_item))
+            elif len(unmovable_reference) == 1 and len(tree_reference) == 0:  # 只有一个静物，就只能再用它作为参照物了。
                 nearest: Item = unmovable_reference[0]
             elif len(unmovable_reference) > 1:
-                # 有充足的参照物时，选择未使用过的最近的参照物
+                # 有两个或以上的参照物时，未使用过的参照物至少有一个，就可以选最近的作为参照物了
                 unmovable_reference.remove(used_reference)
                 nearest: Item = min(unmovable_reference, key=lambda x: x.edge_distance(first_item))
         if nearest is not None:
@@ -872,7 +876,6 @@ class ItemCollection(object):
                         cur_item.reference = nearest
                     else:
                         nearest = None
-                    print(nearest is None)
 
                     if isinstance(cur_item, ItemGroup):
                         cur_item.find_reference(tree_reference=reference_candidate,
@@ -894,12 +897,13 @@ class ItemCollection(object):
             # 无静物就以树作为参照物。
             if len(unmovable_reference) > 0:
                 reference_candidate = unmovable_reference
-            elif tree_reference is not None and len(tree_reference) > 0:
+            elif len(tree_reference) > 0:
                 reference_candidate = tree_reference
             else:
                 reference_candidate = None
             """
-            没有静物也没有树作为参照物，则从第二个开始，每个都以前面的为参照物 
+            没有静物也没有树作为参照物。则从第二个开始，每个都以前面的为参照物 
+            只要有候选参照物，每次都从候选的中取最近的作为参照物。
            """
             if reference_candidate is None:
                 for index, cur_item in enumerate(self.collection):
@@ -909,17 +913,16 @@ class ItemCollection(object):
                         cur_item.reference = former_item
                     if isinstance(cur_item, ItemGroup):
                         cur_item.find_reference(used_reference=None)
-                return
+            else:
+                for index, cur_item in enumerate(self.collection):
+                    nearest = min(reference_candidate, key=lambda x: cur_item.edge_distance(x))
+                    cur_item.direction = ItemCollection.get_dir_of(nearest, cur_item)
+                    cur_item.reference = nearest
 
-            for index, cur_item in enumerate(self.collection):
-                nearest = min(reference_candidate, key=lambda x: cur_item.edge_distance(x))
-                cur_item.direction = ItemCollection.get_dir_of(nearest, cur_item)
-                cur_item.reference = nearest
-
-                if isinstance(cur_item, ItemGroup):
-                    cur_item.find_reference(unmovable_reference=unmovable_reference,
-                                            tree_reference=tree_reference,
-                                            used_reference=nearest)
+                    if isinstance(cur_item, ItemGroup):
+                        cur_item.find_reference(unmovable_reference=unmovable_reference,
+                                                tree_reference=tree_reference,
+                                                used_reference=nearest)
         else:
             raise ValueError("mode must be one of the %s. got %s" % (self.MODES, self.mode))
 
@@ -1102,50 +1105,53 @@ class ItemCollection(object):
         对每个Item或Group进行描述 
        """
         for item_or_group in self.collection:
-            item_name = item_or_group.get_name(is_sentence_head=True)
+            noun_with_num = item_or_group.get_noun_with_num(is_sentence_head=True)
             be_verb = item_or_group.be_verb
 
             if item_or_group.reference is not None:
                 # 有参照物
-                noun_with_num = item_or_group.get_noun_with_num(is_sentence_head=True)
                 description = "%s %s %s %s." % (noun_with_num, be_verb,
                                                 item_or_group.direction, item_or_group.reference.get_name())
             else:
                 # 无参照物，直接描述方位
                 image_position = item_or_group.image_position
-                description = "%s %s in the %s." % (item_name, be_verb, image_position)
+                description = "%s %s %s." % (noun_with_num, be_verb, image_position)
 
             """
             如果是Item，添加id即可
            """
             if isinstance(item_or_group, Item):
-                indexes.append(item_or_group.id)
+                indexes.append([item_or_group.id])
 
             """
-            如果是group且不是树群，对于group内每个Item还要描述
+             对于不是树群的group，group内每个Item都要描述
            """
             if isinstance(item_or_group, ItemGroup) and item_or_group.category != "tree":
+                indexes.append([-1])  # 有一句话用来描述group整体
                 for index, item in enumerate(item_or_group.items):
                     item: Item
                     item_index = item.id
                     item_noun: str = item.get_noun()
                     direction: str = item.direction
 
-                    indexes.append(item_index)
+                    indexes.append([item_index])
                     """
                     对于第一个Item，如果有参照物就描述，若没有就不描述
                     对于第二个以后的Item，必定都有参照物，所以直接描述即可
                   """
-                    if index == 0 and item.reference is not None:
-                        reference_name = item.reference.get_name()
-                        description += " The first %s is %s %s." % (item_noun, direction, reference_name)
+                    if index == 0:
+                        if item.reference is not None:
+                            reference_name = item.reference.get_name()
+                            description += " The first %s is %s %s." % (item_noun, direction, reference_name)
+                        else:
+                            # 这个是首句用There开头,因为不是首句必有reference
+                            description += " The first %s is %s." % (item_noun, item.image_position)
                     elif index > 0:
-                        print(item_noun)
                         reference_noun = item.reference.get_noun()
                         description += " The %s %s is %s the %s %s." % (RANK[index], item_noun,
                                                                         direction, RANK[index - 1], reference_noun)
             if isinstance(item_or_group, ItemGroup) and item_or_group.category == "tree":
-                indexes.extend([item.id for item in item_or_group.items])
+                indexes.append([item.id for item in item_or_group.items])
 
             each_description.append(description)
 
