@@ -2,6 +2,9 @@
 import json
 import math
 import queue
+import os
+
+import numpy as np
 
 IMAGE_LENGTH = IMAGE_WIDTH = IMAGE_HEIGHT = 768
 
@@ -28,8 +31,8 @@ NUMBER = [" ", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight", "Nine", 
 RELATIVE_DIRECTIONS = ["left front", "front", "right front", "right", "left",
                        "left back", "back", "right back"]
 
-DIRECTIONS = ["on the left front of", "in front of", "on the right front of", "on the right of" "on",
-              "under", "one the left of", "on the left back of", "behind", "on the right back of"]
+DIRECTIONS = ["on the left front of", "in front of", "on the right front of", "on the right of", "on",
+              "under", "on the left of", "on the left back of", "behind", "on the right back of"]
 
 
 def get_type(category):
@@ -302,13 +305,19 @@ class Item(object):
 
     @property
     def image_position(self):
-        room_length = IMAGE_LENGTH / 3
-        image_positions = [["left back", "middle back", "right back"],
-                           ["left", "middle", "right"],
-                           ["left front", "middle", "right front"]]
-        x = math.floor(self.bottom / room_length)
-        y = math.floor(self.center.left / room_length)
-        return "%s of the image" % image_positions[x][y]
+        room_length = IMAGE_LENGTH / 3.0
+        image_positions = ["left", "middle", "right"]
+        y = self.center.left / room_length
+        if y <= 1.25:
+            y = 0
+        elif y >= 1.75:
+            y = 2
+        else:
+            y =  1
+        if image_positions[y] == "middle":
+            return "in the " + image_positions[y]
+        else:
+            return "on the " + image_positions[y]
 
     def is_near(self, item):
         return self.edge_distance(item) <= 100
@@ -494,7 +503,7 @@ class Item(object):
             self._name = "the %s %s" % (direction, self.get_single_noun())
             return direction
         else:
-            self._name = "the %d left %s" % (RANK[index], self.get_single_noun())
+            self._name = "the %s left %s" % (RANK[index], self.get_single_noun())
             return None
 
 
@@ -581,7 +590,7 @@ class ItemGroup(object):
         return "back"
 
     def get_noun_with_num(self, is_sentence_head=False):
-        return "%d %s" % (self.num, self.get_plural_noun())
+        return "%s %s" % (NUMBER[self.num - 1], self.get_plural_noun())
 
     def is_center_right_of(self, item_or_group):
         if isinstance(item_or_group, Item) or isinstance(item_or_group, ItemGroup):
@@ -726,24 +735,30 @@ class ItemGroup(object):
             self._name = "the %s %s" % (direction, self.get_plural_noun())
             return direction
         else:
-            self._name = "the %d left %s" % (RANK[index], self.get_plural_noun())
+            self._name = "the %s left %s" % (RANK[index], self.get_plural_noun())
             return None
 
     def find_reference(self, unmovable_reference=None, tree_reference=None, used_reference=None):
+
+        print(".", self.category)
         if used_reference is None:
             # 描述本group时，并没有使用过参照物，说明这个group是图片中最靠后的(在collection定是第一个group)，且没有更高优先级的物体了，
-            # 所以根本就找不到参照物。
+            # 所以这个group根本就找不到参照物。
             # group内第一个item不用找参照物，后面的每个item都以前面的为参照物
             for index, item in enumerate(self.items[1:]):
                 former_item: Item = self.items[index - 1]
-                item: Item.reference = former_item
+                item.reference = former_item
                 item.direction = ItemCollection.get_dir_of_item(former_item, item)
+            return
 
         """
         为group内第一个Item找参照物
        """
         first_item: Item = self.items[0]
-        if self.type == "unmovable" or self.type == "tree":
+        nearest = None
+        if unmovable_reference is None:
+            pass
+        elif self.type == "unmovable" or self.type == "tree":
             if len(unmovable_reference) == 1:
                 # 只有一个可参照物，这个必定是使用过的那个。
                 # 但没有别的参照物能用了，首个item只能依然用这个
@@ -762,8 +777,9 @@ class ItemGroup(object):
                 # 有充足的参照物时，选择未使用过的最近的参照物
                 unmovable_reference.remove(used_reference)
                 nearest: Item = min(unmovable_reference, key=lambda x: x.edge_distance(first_item))
-        first_item.direction = ItemCollection.get_dir_of_item(nearest, first_item)
-        first_item.reference = nearest
+        if nearest is not None:
+            first_item.direction = ItemCollection.get_dir_of_item(nearest, first_item)
+            first_item.reference = nearest
 
         """
         从第二个开始的每个Item都以前面的item为参照
@@ -787,11 +803,14 @@ class ItemCollection(object):
         self.collection: 元素是Item或ItemGroup, 元素间的顺序从后往前排列,
         但单个group内各元素的顺序不一定按照顺序排列。
         """
+        if len(dict_collection) == 0:
+            self.collection = []
+            return
+
         if not isinstance(dict_collection, type({str: []})):
             raise TypeError("type of dict_collection must be {str: []}.", type(dict_collection))
 
         self.index = []
-
         # 为dict_collection每个item或group设置称呼
         self.num_total = {}
         for category in dict_collection:
@@ -824,9 +843,6 @@ class ItemCollection(object):
         如果collection都是静物，则参照物只在静物里找。如果是第一个物体，则不需要找参照物。
         如果collection都是树，则参照物也只在静物里找。如果没有静物，则第一个树/树群不需要找参照物。
         如果collection都是动物，则参照物先在静物里找，若没有静物，则在动物里找。
-        :param tree_reference:
-        :param unmovable_reference:
-        :return:
         """
         if self.mode == "unmovable":
             # 静物以静物为参照物
@@ -856,6 +872,7 @@ class ItemCollection(object):
                         cur_item.reference = nearest
                     else:
                         nearest = None
+                    print(nearest is None)
 
                     if isinstance(cur_item, ItemGroup):
                         cur_item.find_reference(tree_reference=reference_candidate,
@@ -875,15 +892,28 @@ class ItemCollection(object):
         elif self.mode == "movable":
             # 有静物就以静物作为参照物
             # 无静物就以树作为参照物。
-            # 代码默认不会出现既没有静物又没有树的情况
             if len(unmovable_reference) > 0:
                 reference_candidate = unmovable_reference
-            else:
+            elif tree_reference is not None and len(tree_reference) > 0:
                 reference_candidate = tree_reference
+            else:
+                reference_candidate = None
+            """
+            没有静物也没有树作为参照物，则从第二个开始，每个都以前面的为参照物 
+           """
+            if reference_candidate is None:
+                for index, cur_item in enumerate(self.collection):
+                    if index >= 1:
+                        former_item = self.collection[index - 1]
+                        cur_item.direction = ItemCollection.get_dir_of(former_item, cur_item)
+                        cur_item.reference = former_item
+                    if isinstance(cur_item, ItemGroup):
+                        cur_item.find_reference(used_reference=None)
+                return
 
             for index, cur_item in enumerate(self.collection):
                 nearest = min(reference_candidate, key=lambda x: cur_item.edge_distance(x))
-                cur_item.direction = ItemCollection.get_dir_of_item(nearest, cur_item)
+                cur_item.direction = ItemCollection.get_dir_of(nearest, cur_item)
                 cur_item.reference = nearest
 
                 if isinstance(cur_item, ItemGroup):
@@ -982,8 +1012,7 @@ class ItemCollection(object):
     @staticmethod
     def _merge_same_item(items: [Item]):
         if len(items) == 0:
-            print("items length should be longer than 0.")
-            return
+            return {}
         items_set = set(items)
         process_queue = queue.Queue()
         items_groups = {}
@@ -1032,8 +1061,8 @@ class ItemCollection(object):
             direction = first.set_name(num_total=2, reference=second)
             second.set_name(num_total=2, opposite_direction=direction)
         else:
-            item_or_groups = sorted(item_or_groups, key=lambda x: x.position.left)
-            for item_or_group, index in item_or_groups:
+            item_or_groups = sorted(item_or_groups, key=lambda x: x.bottom)
+            for index, item_or_group in enumerate(item_or_groups):
                 item_or_group.set_name(num_total=num_total, index=index)
 
     @staticmethod
@@ -1066,6 +1095,12 @@ class ItemCollection(object):
         indexes = []
         each_description = []
 
+        if len(self.collection) == 0:
+            return "", []
+
+        """
+        对每个Item或Group进行描述 
+       """
         for item_or_group in self.collection:
             item_name = item_or_group.get_name(is_sentence_head=True)
             be_verb = item_or_group.be_verb
@@ -1078,14 +1113,18 @@ class ItemCollection(object):
             else:
                 # 无参照物，直接描述方位
                 image_position = item_or_group.image_position
-                description = "%s %s on the %s." % (item_name, be_verb, image_position)
+                description = "%s %s in the %s." % (item_name, be_verb, image_position)
 
+            """
+            如果是Item，添加id即可
+           """
             if isinstance(item_or_group, Item):
                 indexes.append(item_or_group.id)
 
+            """
+            如果是group且不是树群，对于group内每个Item还要描述
+           """
             if isinstance(item_or_group, ItemGroup) and item_or_group.category != "tree":
-                # 对于group内每个Item还要描述
-
                 for index, item in enumerate(item_or_group.items):
                     item: Item
                     item_index = item.id
@@ -1093,15 +1132,19 @@ class ItemCollection(object):
                     direction: str = item.direction
 
                     indexes.append(item_index)
-                    if index == 0:
+                    """
+                    对于第一个Item，如果有参照物就描述，若没有就不描述
+                    对于第二个以后的Item，必定都有参照物，所以直接描述即可
+                  """
+                    if index == 0 and item.reference is not None:
                         reference_name = item.reference.get_name()
                         description += " The first %s is %s %s." % (item_noun, direction, reference_name)
-                    else:
+                    elif index > 0:
+                        print(item_noun)
                         reference_noun = item.reference.get_noun()
-                        # print(item_noun, reference, item.bottom, item.reference.bottom, direction)
                         description += " The %s %s is %s the %s %s." % (RANK[index], item_noun,
                                                                         direction, RANK[index - 1], reference_noun)
-            elif item_or_group.category == "tree":
+            if isinstance(item_or_group, ItemGroup) and item_or_group.category == "tree":
                 indexes.extend([item.id for item in item_or_group.items])
 
             each_description.append(description)
@@ -1131,7 +1174,6 @@ def init_dict_item(dict_item):
 
 dict_item = {}
 init_dict_item(dict_item)
-
 
 def read(pred_boxes, pred_class_ids):
     items = []
