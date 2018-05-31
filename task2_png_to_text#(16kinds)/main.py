@@ -30,7 +30,9 @@ def main():
     # txt,bg_text=trans.trans(caption)
 
     print(caption)
-    print(index)
+    print("index", index)
+    print("sorted index", sorted(index))
+    print(len(index), len(pred_class_ids))
 
 
 if __name__ == '__main__':

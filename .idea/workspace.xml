@@ -2,8 +2,6 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="d56702d5-8c9f-4b7f-9f2e-73de2271e997" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/Scientific-research-training.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/Scientific-research-training.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py" beforeDir="false" afterPath="$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/task2_png_to_text#(16kinds)/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/task2_png_to_text#(16kinds)/main.py" afterDir="false" />
@@ -18,13 +16,51 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="Util2.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="Util2.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="34800">
-              <caret line="1289" lean-forward="true" selection-start-line="1289" selection-end-line="1289" />
+            <state relative-caret-position="145">
+              <caret line="1006" selection-start-line="1006" selection-end-line="1006" />
               <folding>
                 <element signature="e#24#35#0" expanded="true" />
+                <element signature="e#2306#2430#0" />
+                <element signature="e#2461#4899#0" />
+                <element signature="e#4926#5298#0" />
+                <element signature="e#5375#17348#0" />
+                <element signature="e#5438#6340#0" />
+                <element signature="e#7660#7825#0" />
+                <element signature="e#7882#8278#0" />
+                <element signature="e#8333#8720#0" />
+                <element signature="e#8781#9217#0" />
+                <element signature="e#9278#9396#0" />
+                <element signature="e#19399#19637#0" />
+                <element signature="e#19695#19930#0" />
+                <element signature="e#19986#20221#0" />
+                <element signature="e#20289#20486#0" />
+                <element signature="e#20538#20806#0" />
+                <element signature="e#20860#21018#0" />
+                <element signature="e#21073#21539#0" />
+                <element signature="e#21596#21996#0" />
+                <element signature="e#22037#22355#0" />
+                <element signature="e#22389#22418#0" />
+                <element signature="e#22482#22849#0" />
+                <element signature="e#22905#23291#0" />
+                <element signature="e#23345#23923#0" />
+                <element signature="e#24311#24430#0" />
+                <element signature="e#24021#24972#0" />
+                <element signature="e#41981#42306#0" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="png_to_text_mat.py" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/png_to_text_mat.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="379">
+              <caret line="133" column="11" selection-start-line="133" selection-start-column="11" selection-end-line="133" selection-end-column="11" />
+              <folding>
+                <element signature="e#1983#2361#0" />
               </folding>
             </state>
           </provider>
@@ -33,24 +69,10 @@
       <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="27">
-              <caret line="1" column="22" selection-start-line="1" selection-start-column="22" selection-end-line="1" selection-end-column="22" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="png_to_text_mat.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/png_to_text_mat.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="298">
-              <caret line="148" selection-start-line="148" selection-end-line="148" />
+            <state relative-caret-position="386">
+              <caret line="34" column="42" selection-start-line="34" selection-start-column="42" selection-end-line="34" selection-end-column="42" />
               <folding>
-                <element signature="e#195#1946#0" />
-                <element signature="e#1983#2361#0" />
-                <element signature="e#2403#3207#0" />
-                <element signature="e#3249#4165#0" />
-                <element signature="e#9278#10011#0" />
-                <element signature="e#10045#10460#0" />
+                <element signature="e#24#46#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -60,21 +82,10 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>self.num_to</find>
-      <find>fd</find>
-      <find>%s is</find>
-      <find>refer</find>
-      <find>find_re</find>
-      <find>is on the</find>
-      <find>Item</find>
-      <find>find_ref</find>
-      <find>print</find>
-      <find>edge</find>
       <find>(self)</find>
       <find>ce(self)</find>
       <find>.edge_dis</find>
       <find>== None</find>
-      <find>get_descr</find>
       <find>sorted</find>
       <find>the</find>
       <find>set_name</find>
@@ -83,6 +94,24 @@
       <find>description</find>
       <find>pred_class_ids</find>
       <find>avg</find>
+      <find>There</find>
+      <find>get_descr</find>
+      <find>getItem</find>
+      <find>findNu</find>
+      <find>leftTop</find>
+      <find>isInter</find>
+      <find>is_inside</find>
+      <find>right</find>
+      <find>text</find>
+      <find>self.in_hi</find>
+      <find>self.unmovable</find>
+      <find>get_te</find>
+      <find>plants</find>
+      <find>get_desc</find>
+      <find>read</find>
+      <find>or</find>
+      <find>or</find>
+      <find>item grou</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -110,8 +139,9 @@
     <panes />
   </component>
   <component name="PropertiesComponent">
+    <property name="SearchEverywhereHistoryKey" value="self.num&#9;null&#9;null" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
-    <property name="settings.editor.selected.configurable" value="settings.github" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
   <component name="RunDashboard">
     <option name="ruleStates">
@@ -164,26 +194,25 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-8" y="-8" width="1382" height="744" extended-state="6" />
-    <editor active="true" />
+    <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.18008785" />
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Event Log" order="7" side_tool="true" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.3287234" />
       <window_info anchor="bottom" id="Version Control" order="7" />
       <window_info anchor="bottom" id="Python Console" order="7" />
-      <window_info anchor="bottom" id="Run" order="2" weight="0.329653" />
+      <window_info anchor="bottom" id="Run" order="2" weight="0.3287234" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Terminal" order="7" />
       <window_info id="Favorites" order="2" side_tool="true" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.329653" />
-      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Message" order="0" />
+      <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
+      <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
     </layout>
     <layout-to-restore>
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
@@ -195,14 +224,14 @@
       <window_info anchor="bottom" id="TODO" order="6" />
       <window_info anchor="bottom" id="Version Control" order="10" />
       <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.329653" />
-      <window_info anchor="bottom" id="Find" order="1" weight="0.329653" />
+      <window_info anchor="bottom" id="Python Console" order="7" />
+      <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.4" />
       <window_info anchor="bottom" id="Terminal" order="8" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
+      <window_info anchor="bottom" id="Find" order="1" weight="0.329653" />
       <window_info id="Favorites" order="2" side_tool="true" />
-      <window_info anchor="bottom" id="Message" order="0" />
-      <window_info anchor="bottom" id="Python Console" order="7" />
     </layout-to-restore>
   </component>
   <component name="VcsContentAnnotationSettings">
@@ -210,16 +239,98 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <option name="time" value="17" />
+      <option name="time" value="22" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="45123">
+          <caret line="1157" lean-forward="true" selection-start-line="1157" selection-end-line="1157" />
+          <folding>
+            <element signature="e#24#35#0" expanded="true" />
+            <element signature="e#2306#2430#0" />
+            <element signature="e#2461#4899#0" />
+            <element signature="e#4926#5298#0" />
+            <element signature="e#5375#17348#0" />
+            <element signature="e#5438#6340#0" />
+            <element signature="e#7660#7825#0" />
+            <element signature="e#7882#8278#0" />
+            <element signature="e#8333#8720#0" />
+            <element signature="e#8781#9217#0" />
+            <element signature="e#9278#9396#0" />
+            <element signature="e#19399#19637#0" />
+            <element signature="e#19695#19930#0" />
+            <element signature="e#19986#20221#0" />
+            <element signature="e#20289#20486#0" />
+            <element signature="e#20538#20806#0" />
+            <element signature="e#20860#21018#0" />
+            <element signature="e#21073#21539#0" />
+            <element signature="e#21596#21996#0" />
+            <element signature="e#22037#22355#0" />
+            <element signature="e#22389#22418#0" />
+            <element signature="e#22482#22849#0" />
+            <element signature="e#22905#23291#0" />
+            <element signature="e#23345#23923#0" />
+            <element signature="e#24311#24430#0" />
+            <element signature="e#24021#24972#0" />
+            <element signature="e#41981#42306#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="39">
+          <caret line="1" column="22" selection-start-line="1" selection-start-column="22" selection-end-line="1" selection-end-column="22" />
+          <folding>
+            <element signature="e#24#46#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/png_to_text_mat.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="5772">
+          <caret line="148" selection-start-line="148" selection-end-line="148" />
+          <folding>
+            <element signature="e#1983#2361#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34614">
           <caret line="1282" column="19" lean-forward="true" selection-start-line="1282" selection-start-column="19" selection-end-line="1282" selection-end-column="19" />
           <folding>
             <element signature="e#24#35#0" expanded="true" />
+            <element signature="e#2306#2430#0" />
+            <element signature="e#2461#4899#0" />
+            <element signature="e#4926#5298#0" />
+            <element signature="e#5375#17348#0" />
+            <element signature="e#5438#6340#0" />
+            <element signature="e#7660#7825#0" />
+            <element signature="e#7882#8278#0" />
+            <element signature="e#8333#8720#0" />
+            <element signature="e#8781#9217#0" />
+            <element signature="e#9278#9396#0" />
+            <element signature="e#19399#19637#0" />
+            <element signature="e#19695#19930#0" />
+            <element signature="e#19986#20221#0" />
+            <element signature="e#20289#20486#0" />
+            <element signature="e#20538#20806#0" />
+            <element signature="e#20860#21018#0" />
+            <element signature="e#21073#21539#0" />
+            <element signature="e#21596#21996#0" />
+            <element signature="e#22037#22355#0" />
+            <element signature="e#22389#22418#0" />
+            <element signature="e#22482#22849#0" />
+            <element signature="e#22905#23291#0" />
+            <element signature="e#23345#23923#0" />
+            <element signature="e#24311#24430#0" />
+            <element signature="e#24021#24972#0" />
+            <element signature="e#41981#42306#0" />
           </folding>
         </state>
       </provider>
@@ -236,12 +347,7 @@
         <state relative-caret-position="6156">
           <caret line="228" column="43" selection-start-line="228" selection-start-column="25" selection-end-line="228" selection-end-column="43" />
           <folding>
-            <element signature="e#195#1946#0" />
             <element signature="e#1983#2361#0" />
-            <element signature="e#2403#3207#0" />
-            <element signature="e#3249#4165#0" />
-            <element signature="e#9278#10011#0" />
-            <element signature="e#10045#10460#0" />
           </folding>
         </state>
       </provider>
@@ -270,34 +376,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/png_to_text_mat.py">
+    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="298">
-          <caret line="148" selection-start-line="148" selection-end-line="148" />
+        <state relative-caret-position="145">
+          <caret line="1006" selection-start-line="1006" selection-end-line="1006" />
           <folding>
-            <element signature="e#195#1946#0" />
-            <element signature="e#1983#2361#0" />
-            <element signature="e#2403#3207#0" />
-            <element signature="e#3249#4165#0" />
-            <element signature="e#9278#10011#0" />
-            <element signature="e#10045#10460#0" />
+            <element signature="e#24#35#0" expanded="true" />
+            <element signature="e#2306#2430#0" />
+            <element signature="e#2461#4899#0" />
+            <element signature="e#4926#5298#0" />
+            <element signature="e#5375#17348#0" />
+            <element signature="e#5438#6340#0" />
+            <element signature="e#7660#7825#0" />
+            <element signature="e#7882#8278#0" />
+            <element signature="e#8333#8720#0" />
+            <element signature="e#8781#9217#0" />
+            <element signature="e#9278#9396#0" />
+            <element signature="e#19399#19637#0" />
+            <element signature="e#19695#19930#0" />
+            <element signature="e#19986#20221#0" />
+            <element signature="e#20289#20486#0" />
+            <element signature="e#20538#20806#0" />
+            <element signature="e#20860#21018#0" />
+            <element signature="e#21073#21539#0" />
+            <element signature="e#21596#21996#0" />
+            <element signature="e#22037#22355#0" />
+            <element signature="e#22389#22418#0" />
+            <element signature="e#22482#22849#0" />
+            <element signature="e#22905#23291#0" />
+            <element signature="e#23345#23923#0" />
+            <element signature="e#24311#24430#0" />
+            <element signature="e#24021#24972#0" />
+            <element signature="e#41981#42306#0" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="27">
-          <caret line="1" column="22" selection-start-line="1" selection-start-column="22" selection-end-line="1" selection-end-column="22" />
+        <state relative-caret-position="386">
+          <caret line="34" column="42" selection-start-line="34" selection-start-column="42" selection-end-line="34" selection-end-column="42" />
+          <folding>
+            <element signature="e#24#46#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/Util2.py">
+    <entry file="file://$PROJECT_DIR$/task2_png_to_text#(16kinds)/png_to_text_mat.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="34800">
-          <caret line="1289" lean-forward="true" selection-start-line="1289" selection-end-line="1289" />
+        <state relative-caret-position="379">
+          <caret line="133" column="11" selection-start-line="133" selection-start-column="11" selection-end-line="133" selection-end-column="11" />
           <folding>
-            <element signature="e#24#35#0" expanded="true" />
+            <element signature="e#1983#2361#0" />
           </folding>
         </state>
       </provider>

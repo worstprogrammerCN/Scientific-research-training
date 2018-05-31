@@ -3,13 +3,16 @@ import json
 import math
 import queue
 
+IMAGE_LENGTH = IMAGE_WIDTH = IMAGE_HEIGHT = 768
+
 TYPES = ["unmovable", "tree", "movable"]
 CATEGORIES_UNMOVABLE = ["bench", "bus", "car", "house"]
 CATEGORIES_TREE = ["tree"]
-CATEGORIES_MOVABLE = ["butterfly", "cat", "chicken", "cow", "dog", "duck", "people", "sheep", "bird"]
+CATEGORIES_MOVABLE = ["butterfly", "cat", "chicken", "cow", "dog", "duck", "people", "sheep", "bird", "pig", "rabbit"]
+
 # 16 valid categories
 INSTANCE = CATEGORIES_UNMOVABLE + CATEGORIES_TREE + CATEGORIES_MOVABLE + \
-           ["cloud", "sun"] + \
+           ["cloud", "sun", "moon"] + \
            ["road", "grass"]
 
 RANK = ["first", "second", "third", "fourth", "fifth", "sixth", "seventh", "eighth", "ninth", "tenth",
@@ -126,10 +129,6 @@ class Position(object):
     def is_coincide_with(self, position):
         return self.left == position.left and self.top == position.top
 
-    # 判断点是否在物体所占矩形区域内。
-    def is_inside(self, item):
-        return self.is_right_below_equal(item.leftTop) and self.is_left_above_equal(item.rightBottom)
-
     def get_degree_to(self, position):
         """得到与另一个位置的连线 与 水平线形成的角度
 
@@ -173,15 +172,14 @@ class Size(object):
 class Item(object):
     """每个Item都有数量，位置和大小的属性，还有自己的类型和编号(@code{oid})"""
 
-    def __init__(self, category, oid, position, size):
+    def __init__(self, category, oid, position, size, id):
         """
         Args:
-        category: 物体的类型。比如"tree", "car"
+            category: 物体的类型。比如"tree", "car"
             oid: 物体的编号。比如"tree3", "cat2"
             position：物体的位置。
-            size：物体的大小
-            leftTop：一个@code{position}，物体所占矩形的左上角
-            rightBottom: 一个code{position}, 物体所占矩形的右下角
+            size：物体的大小。
+            id: 对应main中输入的class_id在list中的位置。
         """
         super(Item, self).__init__()
         self.category = category
@@ -189,6 +187,7 @@ class Item(object):
         self.oid = oid
         self.position = position
         self.size = size
+        self.id = id
         self.center: Position = Position(position.left + size.width / 2, position.top + size.height / 2,
                                          position.zIndex)
         self.bottom_center = Position(position.left, position.top + size.height / 2,
@@ -213,28 +212,9 @@ class Item(object):
             输出自己左上角的位置，以及自己的所占矩形区域的大小。
         """
         print("--------------an %s----------------" % self.category)
-        print("leftTop:")
-        self.leftTop.showPosition()
         print("rect size:")
         self.size.showSize()
         print("-------------------------------------")
-
-    def isInteractWith(self, item):
-        """
-            判断两个item是否相交。关键在于判断它们占有的矩形区域是否相交。
-            详细的判断逻辑较难阐述，百度上有很多解释清楚的，此处省去逻辑。
-        """
-        if self.leftTop.is_right_of(item.rightBottom) or self.leftTop.is_below(item.rightBottom):
-            return False
-        if self.leftTop.is_inside(item):
-            return True
-        elif self.rightBottom.is_inside(item):
-            return True
-        elif self.leftTop.is_left_of(item.leftTop) and self.rightBottom.is_right_below_equal(item.leftTop):  # 从左向右跨越覆盖
-            return True
-        elif self.leftTop.is_above(item.leftTop) and self.rightBottom.is_below_equal(item.leftTop):  # 从上到下跨越覆盖
-            return True
-        return False
 
     def get_degree_to(self, item):
         """
@@ -320,6 +300,16 @@ class Item(object):
     def be_verb(self):
         return "is"
 
+    @property
+    def image_position(self):
+        room_length = IMAGE_LENGTH / 3
+        image_positions = [["left back", "middle back", "right back"],
+                           ["left", "middle", "right"],
+                           ["left front", "middle", "right front"]]
+        x = math.floor(self.bottom / room_length)
+        y = math.floor(self.center.left / room_length)
+        return "%s of the image" % image_positions[x][y]
+
     def is_near(self, item):
         return self.edge_distance(item) <= 100
 
@@ -394,6 +384,12 @@ class Item(object):
 
     def get_noun(self):
         return self.get_single_noun()
+
+    def get_noun_with_num(self, is_sentence_head=False):
+        if is_sentence_head:
+            return "A %s" % self.get_single_noun()
+        else:
+            return "a %s" % self.get_single_noun()
 
     def get_position_to_item(self, item=None):
         """
@@ -548,8 +544,9 @@ class ItemGroup(object):
 
         position = Position(total_left / num, total_top / num, z_index)
         size = Size(total_width / num, total_height / num)
+        id = -1
 
-        item = Item(category, oid, position, size)
+        item = Item(category, oid, position, size, id)
         item.num = num
         return item
 
@@ -575,11 +572,16 @@ class ItemGroup(object):
     def be_verb(self):
         return "are"
 
-    def get_name(self, is_sentence_head=False):
-        if not is_sentence_head:
-            return self._name
-        else:
-            return "The" + self._name[3:]
+    @property
+    def noun(self):
+        return self.get_plural_noun()
+
+    @property
+    def image_position(self):
+        return "back"
+
+    def get_noun_with_num(self, is_sentence_head=False):
+        return "%d %s" % (self.num, self.get_plural_noun())
 
     def is_center_right_of(self, item_or_group):
         if isinstance(item_or_group, Item) or isinstance(item_or_group, ItemGroup):
@@ -693,6 +695,12 @@ class ItemGroup(object):
 
         return math.sqrt(dx ** 2 + dy ** 2)
 
+    def get_name(self, is_sentence_head=False):
+        if not is_sentence_head:
+            return self._name
+        else:
+            return "The" + self._name[3:]
+
     def set_name(self, num_total, reference=None, index=None, opposite_direction=None):
         """
 
@@ -735,7 +743,7 @@ class ItemGroup(object):
         为group内第一个Item找参照物
        """
         first_item: Item = self.items[0]
-        if self.type == "unmovable" or "tree":
+        if self.type == "unmovable" or self.type == "tree":
             if len(unmovable_reference) == 1:
                 # 只有一个可参照物，这个必定是使用过的那个。
                 # 但没有别的参照物能用了，首个item只能依然用这个
@@ -781,6 +789,8 @@ class ItemCollection(object):
         """
         if not isinstance(dict_collection, type({str: []})):
             raise TypeError("type of dict_collection must be {str: []}.", type(dict_collection))
+
+        self.index = []
 
         # 为dict_collection每个item或group设置称呼
         self.num_total = {}
@@ -995,7 +1005,6 @@ class ItemCollection(object):
                         item.is_grouped = True
                     items_set = items_set.difference(items_group)  # 已经加入组的item不用再处理
 
-            print("item group", [item.oid for item in items_group])
             if not items_groups.get(group_category):
                 items_groups[group_category] = []
             if len(items_group) > 1:
@@ -1054,29 +1063,8 @@ class ItemCollection(object):
             raise ValueError("num must be larger than 0. got %d" % num)
 
     def get_description(self):
+        indexes = []
         each_description = []
-        num_total = sum(self.num_total.values())
-
-        if num_total == 1:
-            total_description_head = "There is"
-        elif num_total > 1:
-            total_description_head = "There are"
-        else:
-            return ""
-
-        total_items_description = []
-        for category in self.num_total.keys():
-            num = self.num_total[category]
-            if num == 1:
-                total_items_description.append("a %s" % ItemCollection.get_noun(category, num))
-            elif num > 1:
-                total_items_description.append("%d %s" % (num, ItemCollection.get_noun(category, num)))
-
-        category_total = len(self.num_total.values())
-        if category_total == 1:
-            total_items_description = total_items_description[0]
-        elif category_total > 1:
-            total_items_description = ",".join(total_items_description[:-1]) + " and " + total_items_description[-1]
 
         for item_or_group in self.collection:
             item_name = item_or_group.get_name(is_sentence_head=True)
@@ -1084,44 +1072,54 @@ class ItemCollection(object):
 
             if item_or_group.reference is not None:
                 # 有参照物
-                description = "%s %s %s %s." % (item_name, be_verb,
+                noun_with_num = item_or_group.get_noun_with_num(is_sentence_head=True)
+                description = "%s %s %s %s." % (noun_with_num, be_verb,
                                                 item_or_group.direction, item_or_group.reference.get_name())
             else:
                 # 无参照物，直接描述方位
-                description = "%s %s on the middle(test)." % (item_name, be_verb)
+                image_position = item_or_group.image_position
+                description = "%s %s on the %s." % (item_name, be_verb, image_position)
+
+            if isinstance(item_or_group, Item):
+                indexes.append(item_or_group.id)
 
             if isinstance(item_or_group, ItemGroup) and item_or_group.category != "tree":
                 # 对于group内每个Item还要描述
 
                 for index, item in enumerate(item_or_group.items):
                     item: Item
+                    item_index = item.id
                     item_noun: str = item.get_noun()
                     direction: str = item.direction
+
+                    indexes.append(item_index)
                     if index == 0:
-                        reference = item.reference.get_name()
-                        description += " The first %s is %s %s." % (item_noun, direction, reference)
+                        reference_name = item.reference.get_name()
+                        description += " The first %s is %s %s." % (item_noun, direction, reference_name)
                     else:
-                        reference = item.reference.get_noun()
-                        print(item_noun, reference, item.bottom, item.reference.bottom, direction)
-                        description += " The %s %s is %s %s %s." % (RANK[index], item_noun,
-                                                                    direction, RANK[index - 1], reference)
+                        reference_noun = item.reference.get_noun()
+                        # print(item_noun, reference, item.bottom, item.reference.bottom, direction)
+                        description += " The %s %s is %s the %s %s." % (RANK[index], item_noun,
+                                                                        direction, RANK[index - 1], reference_noun)
+            elif item_or_group.category == "tree":
+                indexes.extend([item.id for item in item_or_group.items])
 
             each_description.append(description)
 
         description = []
-        total_description = "%s %s." % (total_description_head, total_items_description)
-        description.append(total_description)
         description.extend(each_description)
-        return " ".join(description)
+        return " ".join(description), indexes
 
 
 def init_dict_item(dict_item):
-    '''
-        初始化物体的字典。
-        读取处理'./colorMap_46.txt'得到物体与编号对应关系的字典。
+    """
+    初始化物体的字典。
+        读取处理'./colorMap_46.txt'得到物体与编号对应关系的dict。
         Args:
             dict_item: 字典。key是整形数，含义是编号；value是字符串，含义是物体的名字
-    '''
+    :return: 物体与编号对应关系的dict
+    """
+
     f = open('./colorMap_46.txt')
 
     index = 0
@@ -1129,142 +1127,6 @@ def init_dict_item(dict_item):
         index += 1
         item = line.split(" ")[0]
         dict_item[index] = item
-
-
-def findNums(matrix):
-    numsForHandWritten = []
-    numsForPicture = []
-    for arr in matrix:
-        for zIndex in arr:
-            if zIndex >= 100 and zIndex not in numsForHandWritten:
-                numsForHandWritten.append(zIndex)
-            elif zIndex > 0 and zIndex < 100 and zIndex not in numsForPicture:
-                numsForPicture.append(zIndex)
-    return (numsForHandWritten, numsForPicture)
-
-
-def getItemCategory(class_gt, instance_gt, z_index):
-    for i in range(len(instance_gt)):
-        for j in range(len(instance_gt[0])):
-            if instance_gt[i][j] == z_index:
-                category_index = class_gt[i][j]
-                return (dict_item[class_gt[i][j]], category_index, i, j)
-
-    print("wrong?%d" % z_index)
-
-
-def getItem(class_gt, instance_gt, zIndex):
-    # type: (object, object, object) -> object
-    '''
-        i, j: 表示矩阵里的第i行, 第j列
-    '''
-    (category, cateGoryIndex, iFirstPixel, jFirstPixel) = getItemCategory(class_gt, instance_gt, zIndex)
-
-    left = jFirstPixel  # 初始化
-    right = jFirstPixel  # 初始化
-    top = iFirstPixel  # top: 物体最高的像素的j。就是j
-    bottom = iFirstPixel  # 初始化
-
-    i = iFirstPixel
-    j = jFirstPixel
-    while i < len(class_gt):
-        while j < len(class_gt[0]):
-            if instance_gt[i][j] == zIndex:
-                if j < left:
-                    left = j
-                if j > right:
-                    right = j
-                if i > bottom:
-                    bottom = i
-            j += 1
-        j = 0
-        i += 1
-
-    width = right - left
-    height = bottom - top
-
-    oid = "%s%d" % (category, zIndex)
-    position = Position(left, top, zIndex)
-    size = Size(width, height)
-
-    item = Item(category, oid, position, size)
-    return item
-
-
-def readMat(class_gt_mat, instance_gt_mat):
-    # matD = mat_dir + 'CLASS_GT/sample_%d_class.mat' % index
-    # print(matD)
-    # if os.path.exists(matD):
-    #   print("yes")
-    # else:
-    #   print("no")
-
-    # class_gt_mat = scipy.io.loadmat(mat_dir + 'CLASS_GT/sample_%d_class.mat' % index)  # 读取class_gt mat文件
-    # instance_gt_mat = scipy.io.loadmat(mat_dir + 'INSTANCE_GT/sample_%d_instance.mat' % index)  # 读取mat文件
-    items = []
-
-    class_gt = class_gt_mat['CLASS_GT']
-    instance_gt = instance_gt_mat['INSTANCE_GT']
-
-    (numsForHandWritten, numsForPicture) = findNums(instance_gt)
-    # if len(numsForHandWritten) != 0:
-    #   for zIndex in numsForHandWritten:
-    #       item = getItem(class_gt, instance_gt, zIndex)
-    #       items.append(item)
-
-    if len(numsForPicture) != 0:
-        for zIndex in numsForPicture:
-            item = getItem(class_gt, instance_gt, zIndex)
-            if item.category in INSTANCE:
-                items.append(item)
-    return items
-
-
-def ReadJson(number, dir_path):
-    """根据json文件的编号，处理这个文件，并返回包含Item的数组
-
-    首先根据文件编号打开文件，将其字符串解码为json数组对象，
-    再对每个元素提取信息，构造一个个@code{Item}，最后返回Item的数组
-
-    Args:
-        number: json文件的编号。默认json文件都是'1.json'，'4.json'这样命名的
-        dir_path: json的文件路径
-        raw_items:
-            未经过加工处理的json对象。需要从中提取必要信息，来构造@code{Item}。
-            rawItem['left'], rawItem['top'], rawItem['width'], rawItem['height']都以'px'结尾，比如333px, -20px。
-        category: 这个物体的类别
-        width：物体所占矩形区域的宽度。
-        height： 物体所占矩形区域的高度。
-        zIndex： 物体所占位置的层叠顺序。比如，2代表它在@code{zIndex}为1的物体放置在图上之后，才放置在图上
-    Returns:
-        一个数组。数组的每个元素都是Item。
-    Exceptions:
-        没有该文件，打开文件失败: 直接返回None
-    """
-    path = dir_path + '%d.json' % number
-    try:
-        with open(path) as f:
-            raw_items = json.load(f)
-            items = []
-            for rawItem in raw_items:
-                category = rawItem['category']
-                oid = rawItem['oid']
-
-                left = int(rawItem['left'][0:-2])
-                top = int(rawItem['top'][0:-2])
-                zIndex = int(rawItem['zIndex'])
-
-                width = int(rawItem['width'][0:-2])
-                height = int(rawItem['height'][0:-2])
-
-                position = Position(left, top, zIndex)
-                size = Size(width, height)
-                item = Item(category, oid, position, size)
-                items.append(item)
-            return items
-    except Exception as e:
-        print("maybe no such file", path)
-        return None
 
 
 dict_item = {}
@@ -1280,10 +1142,10 @@ def read(pred_boxes, pred_class_ids):
             top = pred_boxes[i][0]
             width = pred_boxes[i][3] - pred_boxes[i][1]
             height = pred_boxes[i][2] - pred_boxes[i][0]
-            id = pred_class_ids[i]
+            id = i
             oid = "%s%d" % (category, i)
             position = Position(left, top, oid)
             size = Size(width, height)
-            item = Item(category, oid, position, size)
+            item = Item(category, oid, position, size, id)
             items.append(item)
     return items
