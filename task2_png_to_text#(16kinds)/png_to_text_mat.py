@@ -17,6 +17,7 @@ class ImageToText(object):
         """
         super(ImageToText, self).__init__()
         self.items: [] = items
+        self.index_list = []
         self.index = []
 
     def get_weather(self):
@@ -82,6 +83,8 @@ class ImageToText(object):
         if len(cloud_ids) > 0:
             self.index.append(cloud_ids)
 
+        self.index_list.extend(sky_item_ids + cloud_ids)
+
         distant_view_texts = " ".join(texts)
         return distant_view_texts
 
@@ -99,16 +102,18 @@ class ImageToText(object):
         unmovable, trees, movable = \
             Util2.ItemCollection.get_collections(ground_items, Util2.CATEGORIES_UNMOVABLE, Util2.CATEGORIES_MOVABLE)
 
-        print(unmovable.get_description())
-        print(trees.get_description())
-        print(movable.get_description())
+        print("unmovable:", (unmovable.get_description())["des"])
+        print("trees:", (trees.get_description())["des"])
+        print("movable:", (movable.get_description())["des"])
 
-        unmovable_description, unmovable_index = unmovable.get_description()
-        trees_description, trees_index = trees.get_description()
-        movable_description, movable_index = movable.get_description()
+        unmovable_res = unmovable.get_description()
+        trees_res = trees.get_description()
+        movable_res = movable.get_description()
 
-        descriptions = [unmovable_description, trees_description, movable_description]
-        indexes_list = [unmovable_index, trees_index, movable_index]
+        descriptions = [unmovable_res["des"], trees_res["des"], movable_res["des"]]
+        self.index_list.extend(unmovable_res["list"] + trees_res["list"] + movable_res["list"])
+
+        indexes_list = [unmovable_res["indexes"], trees_res["indexes"], movable_res["indexes"]]
         for indexes in indexes_list:
             self.index.extend(indexes)
 
@@ -139,6 +144,8 @@ class ImageToText(object):
         if has_road:
             self.index.append(road_ids)
             grass_road_text.append("There is a road.")
+
+        self.index_list.extend(road_ids)
         return " ".join(grass_road_text)
 
     def get_text(self):
@@ -146,6 +153,7 @@ class ImageToText(object):
             分别取得关于天气，远方景象，交通工具，地面物体，以及花盆里的花的描述。
             将它们组合到一起，形成一篇完整的描述。
         """
+        self.index_list = []
         self.index = []
         weather = self.get_weather()
         distant_view = self.get_distant_view()
@@ -153,13 +161,13 @@ class ImageToText(object):
         grass_road_text = self.get_grass_road_text()
 
         texts = [weather, distant_view, ground_items, grass_road_text]
-        return " ".join([text for text in texts if text != ""]), self.index
+        return " ".join([text for text in texts if text != ""]), self.index_list, self.index
 
 
 def png2text(pred_boxes, pred_class_ids):
     items = Util2.read(pred_boxes, pred_class_ids)
     print("items (in the order of item.oid)", [item.oid for item in items])
     solution = ImageToText(items)
-    text, index = solution.get_text()
-    return text, index
+    text, index_list, index = solution.get_text()
+    return text, index_list, index
 

@@ -1095,11 +1095,12 @@ class ItemCollection(object):
             raise ValueError("num must be larger than 0. got %d" % num)
 
     def get_description(self):
+        index_list = []
         indexes = []
         each_description = []
 
         if len(self.collection) == 0:
-            return "", []
+            return {"des": "", "list": [], "indexes": []}
 
         """
         对每个Item或Group进行描述 
@@ -1121,6 +1122,7 @@ class ItemCollection(object):
             如果是Item，添加id即可
            """
             if isinstance(item_or_group, Item):
+                index_list.append(item_or_group.id)
                 indexes.append([item_or_group.id])
 
             """
@@ -1134,6 +1136,7 @@ class ItemCollection(object):
                     item_noun: str = item.get_noun()
                     direction: str = item.direction
 
+                    index_list.append(item_index)
                     indexes.append([item_index])
                     """
                     对于第一个Item，如果有参照物就描述，若没有就不描述
@@ -1151,13 +1154,15 @@ class ItemCollection(object):
                         description += " The %s %s is %s the %s %s." % (RANK[index], item_noun,
                                                                         direction, RANK[index - 1], reference_noun)
             if isinstance(item_or_group, ItemGroup) and item_or_group.category == "tree":
+                index_list.extend([item.id for item in item_or_group.items])
                 indexes.append([item.id for item in item_or_group.items])
 
             each_description.append(description)
 
         description = []
         description.extend(each_description)
-        return " ".join(description), indexes
+        des = " ".join(description)
+        return {"des": des, "list": index_list, "indexes": indexes}
 
 
 def init_dict_item(dict_item):

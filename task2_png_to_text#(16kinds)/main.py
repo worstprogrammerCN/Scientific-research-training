@@ -31,9 +31,10 @@ def main():
     for i in test_ids:
         print("----------number %d----------" % i)
         pred_boxes, pred_class_ids = read_npz(data_save_base_dir, i)
-        caption, index = png_to_text_mat.png2text(pred_boxes, pred_class_ids)
+        caption, index_list, indexes = png_to_text_mat.png2text(pred_boxes, pred_class_ids)
         print(caption)
-        print("index", index)
+        print("index_list", index_list)
+        print("indexes", indexes)
         # print("sorted index", sorted(index))
         # print(len(index), len(pred_class_ids))
 
