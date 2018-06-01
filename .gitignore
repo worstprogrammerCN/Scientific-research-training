@@ -4,4 +4,4 @@ task2_png_to_text/__pycache__/
 task5_AlexNet_VGG/VGG/vgg16_weights.npz
 */__pycache__
 task5_AlexNet_VGG/AlexNet/bvlc_alexnet.npy
-.idea
+.idea/
