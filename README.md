@@ -45,3 +45,7 @@
 **运行效果**
 
 [![image.png](https://s22.postimg.cc/hpc4xaiv5/image.png)](https://postimg.cc/image/gztckxibh/)
+
+# 2. task7 FCN
+因为代码量和内容较多，单独放置在另一个仓库:
+https://github.com/worstprogrammerCN/FCN-tensorflow-ADE20k
